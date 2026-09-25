@@ -1,0 +1,110 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>VS / VT Series Pricing Wizard</title><style>
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; color: #333; margin: 0; padding: 20px; }
+.container { max-width: 600px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+h1 { font-size: 24px; text-align: center; color: #2c3e50; margin-bottom: 6px; }
+.subtitle { text-align:center; color:#7f8c8d; font-size:13px; margin-bottom:20px; }
+.form-group { margin-bottom: 15px; }
+label { display: block; font-weight: bold; margin-bottom: 5px; color: #34495e; }
+select, input[type="number"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 16px; }
+.checkbox-group { display: flex; align-items: center; margin-top: 10px; margin-bottom: 20px; }
+.checkbox-group input { width:auto; margin-right:10px; width:20px; height:20px; }
+.checkbox-group label { margin-bottom:0; }
+.results { margin-top: 30px; padding: 20px; background: #e8f4f8; border-radius: 8px; border-left: 5px solid #3498db; }
+.results div { margin-bottom: 10px; font-size: 18px; display: flex; align-items: center; flex-wrap:wrap; }
+.results span { font-weight: bold; color: #2980b9; }
+#copy-btn { margin-left: 15px; padding: 4px 12px; font-size: 14px; cursor: pointer; border: 1px solid #bdc3c7; background-color: #fff; color: #2c3e50; border-radius: 4px; transition: all 0.2s; }
+#copy-btn:hover { background-color: #ecf0f1; }
+#copy-btn.copied { background-color: #2ecc71; color: white; border-color: #27ae60; }
+.description-box { margin-top: 15px; padding-top: 15px; border-top: 1px dashed #bdc3c7; font-size: 15px !important; color: #2c3e50; display: block !important; line-height: 1.5; }
+.description-box span { color: #333; font-weight: normal; }
+.back { display:inline-block; margin-bottom:15px; color:#2980b9; text-decoration:none; font-size:14px; }
+.hidden { display:none !important; }
+</style></head><body><div class="container">
+<a class="back" href="index.html">← Back to all heater calculators</a>
+<h1>VS / VT Series Pricing Wizard</h1><div class="subtitle" id="subtitle">Varipower Small Tank and Screwplug Heater</div>
+<div class="form-group"><label for="material">Material</label><select id="material" onchange="changeMaterial()"><option value="0">316 Stainless (VS)</option><option value="1">Titanium (VT)</option></select></div>
+<div class="form-group"><label for="wattage">Wattage (W)</label><select id="wattage" onchange="updateVoltages()"></select></div>
+<div class="form-group"><label for="voltage">Voltage (V)</label><select id="voltage" onchange="updateRecord()"></select></div>
+<div class="form-group"><label for="phase">Phase</label><select id="phase" onchange="calculate()"><option value="1">Single Phase</option></select></div>
+
+<div class="results"><div>Part Number: <span id="out-part" style="margin-left:5px"></span><button id="copy-btn" onclick="copyPart()">Copy</button></div><div>Amps: <span id="out-amps" style="margin-left:5px"></span> A</div><div>Retail Price: $<span id="out-price" style="margin-left:5px"></span></div><div>Distributor Price: $<span id="out-dist-price" style="margin-left:5px"></span></div><div class="description-box"><strong>Description:</strong><br><span id="out-desc"></span></div></div>
+</div><script>
+const materialCfgs=[{"code": "VS", "category": "Varipower small tank and screwplug heaters", "title": "VS Series Varipower Heater", "material": "316 Stainless", "records": [{"watts": 100, "voltage": 120, "model": "VS.1107", "price": 312.0, "hotzone": 4, "length": 7}, {"watts": 100, "voltage": 240, "model": "VS.1207", "price": 312.0, "hotzone": 4, "length": 7}, {"watts": 300, "voltage": 120, "model": "VS.3111", "price": 986.0, "hotzone": 6, "length": 11}, {"watts": 300, "voltage": 240, "model": "VS.3211", "price": 986.0, "hotzone": 6, "length": 11}, {"watts": 500, "voltage": 120, "model": "VS.5111", "price": 1379.0, "hotzone": 6, "length": 11}, {"watts": 500, "voltage": 240, "model": "VS.5211", "price": 1379.0, "hotzone": 6, "length": 11}, {"watts": 1000, "voltage": 120, "model": "VS1111", "price": 2064.0, "hotzone": 6, "length": 11}, {"watts": 1000, "voltage": 240, "model": "VS1211", "price": 2064.0, "hotzone": 6, "length": 11}], "phaseMode": "fixed1", "thermal": "none", "modelMode": "none", "conduit": false, "notes": "Single phase only. 100W/120V models include a 4 ft cord and plug; 300-1000W models include 3 ft conduit."}, {"code": "VT", "category": "Varipower small tank and screwplug heaters", "title": "VT Series Varipower Heater", "material": "Titanium", "records": [{"watts": 100, "voltage": 120, "model": "VT.1107", "price": 362.0, "hotzone": 4, "length": 7}, {"watts": 100, "voltage": 240, "model": "VT.1207", "price": 362.0, "hotzone": 4, "length": 7}, {"watts": 300, "voltage": 120, "model": "VT.3111", "price": 1033.0, "hotzone": 6, "length": 11}, {"watts": 300, "voltage": 240, "model": "VT.3211", "price": 1033.0, "hotzone": 6, "length": 11}, {"watts": 500, "voltage": 120, "model": "VT.5111", "price": 1447.0, "hotzone": 6, "length": 11}, {"watts": 500, "voltage": 240, "model": "VT.5211", "price": 1447.0, "hotzone": 6, "length": 11}, {"watts": 1000, "voltage": 120, "model": "VT1111", "price": 2199.0, "hotzone": 6, "length": 11}, {"watts": 1000, "voltage": 240, "model": "VT1211", "price": 2199.0, "hotzone": 6, "length": 11}], "phaseMode": "fixed1", "thermal": "none", "modelMode": "none", "conduit": false, "notes": "Single phase only. 100W/120V models include a 4 ft cord and plug; 300-1000W models include 3 ft conduit."}];
+let cfg=materialCfgs[0];
+function changeMaterial(){
+ cfg=materialCfgs[Number(document.getElementById("material").value)];
+ document.getElementById("subtitle").textContent="Varipower Small Tank and Screwplug Heater";
+ const phase=document.getElementById("phase"); if(phase){ phase.disabled=false; }
+ const thermal=document.getElementById("thermal"); if(thermal){ thermal.disabled=false; }
+ init();
+}
+function money(n){return Number(n).toFixed(2)}
+function unique(a){return [...new Set(a)]}
+function init(){
+ const sub=document.getElementById("subtitle"); if(sub) sub.textContent="Varipower Small Tank and Screwplug Heater";
+ const mhLabel=document.getElementById("metalHeadLabel"); if(mhLabel && cfg.metalHeadAdder!=null) mhLabel.textContent="Welded metal head (+$"+cfg.metalHeadAdder+")";
+ const ws=unique(cfg.records.map(r=>r.watts)); const el=document.getElementById('wattage'); el.innerHTML=ws.map(w=>`<option value="${w}">${w}</option>`).join(''); updateVoltages();
+}
+function updateVoltages(){
+ const w=Number(document.getElementById('wattage').value); const rs=cfg.records.filter(r=>Number(r.watts)===w); const vs=unique(rs.map(r=>r.voltage)); document.getElementById('voltage').innerHTML=vs.map(v=>`<option value="${v}">${v}V</option>`).join(''); updateRecord();
+}
+function currentRecord(){const w=Number(document.getElementById('wattage').value),v=Number(document.getElementById('voltage').value); return cfg.records.find(r=>Number(r.watts)===w && Number(r.voltage)===v)}
+function updateRecord(){
+ const r=currentRecord(); if(!r)return;
+ const vertical=document.getElementById('vertical'); if(vertical){vertical.value=r.length||12; vertical.min=r.length||1;}
+ const deep=document.getElementById('deepRiser'); if(deep) deep.value=12;
+ const plug=document.getElementById('plug'); if(plug){const ok=(Number(r.voltage)===120 && (Number(r.watts)===500||Number(r.watts)===1000)); plug.disabled=!ok; if(!ok)plug.checked=false;}
+ calculate();
+}
+function metalHeadChanged(){
+ const mh=document.getElementById('metalHead'),th=document.getElementById('thermal'); if(mh&&th&&mh.checked){th.value='P2'; th.disabled=true;} else if(th) th.disabled=false; calculate();
+}
+function updateRiser(){
+ const typ=document.getElementById('riserType'),v=document.getElementById('vertical'),th=document.getElementById('thermal'),r=currentRecord(); if(!typ||!v||!r)return;
+ if(typ.value==='flex'){v.min=48; if(Number(v.value)<48)v.value=48; if(th){th.value='P2';th.disabled=true;}} else {v.min=r.length||1; if(Number(v.value)<Number(r.length||1))v.value=r.length||1; if(th)th.disabled=false;}
+ calculate();
+}
+function buildModel(r,phase,thermal){
+ let m=r.model;
+ if(cfg.modelMode==='starPhaseThermal'){
+   if(cfg.phaseMode==='singleOptional3_10'){m=m.replace('-*-**', phase==='3' ? '-3-'+thermal : '-'+thermal);}
+   else {m=m.replace('-*-**','-'+phase+'-'+thermal);}
+ } else if(cfg.modelMode==='lShape'){
+   const typ=document.getElementById('riserType').value; const vl=Number(document.getElementById('vertical').value); m=m.replace('R*', typ==='flex'?'FR':'R'+vl); m=m.replace('**',thermal);
+   if(phase==='3' && cfg.phaseMode==='singleOptional3_10') m=m.replace('-'+thermal,'-3-'+thermal);
+   if(phase==='1' && cfg.phaseMode==='threeOptional1') m=m.replace('-'+thermal,'-1-'+thermal);
+ } else if(cfg.modelMode==='thermalDouble'){
+   m=m.replace('**',thermal);
+   if(phase==='3' && (cfg.phaseMode==='singleOptional3'||cfg.phaseMode==='singleOptional3_10')) m=m.replace('-'+thermal,'-3-'+thermal);
+   if(phase==='1' && cfg.phaseMode==='threeOptional1') m=m.replace('-'+thermal,'-1-'+thermal);
+ } else if(cfg.modelMode==='thermalSingle'){
+   m=m.replace('*',thermal);
+   if(phase==='1' && cfg.phaseMode==='threeOptional1') m=m.replace('-'+thermal,'-1-'+thermal);
+ } else if(cfg.modelMode==='fixedP4'){
+   if(thermal==='P6')m=m.replace('P4','P6'); if(phase==='3')m=m.replace('-'+thermal,'-3-'+thermal);
+ }
+ if(cfg.phaseMode==='singleOptional3_10_end' && phase==='3')m+='-3';
+ if(cfg.phaseMode==='threeOptional1_end' && phase==='1')m+='-1';
+ const mh=document.getElementById('metalHead'); if(mh&&mh.checked&&!m.includes('M-')) m=m.replace('-', 'M-',1);
+ const conduit=document.getElementById('conduit'); if(conduit&&Number(conduit.value)>36)m+='-X'+Math.round(Number(conduit.value));
+ return m;
+}
+function calculate(){
+ const r=currentRecord(); if(!r)return; const phase=document.getElementById('phase').value; const thEl=document.getElementById('thermal'); let thermal=thEl?thEl.value:'';
+ if(cfg.special9HS && Number(r.watts)===31500 && Number(r.voltage)===240){thermal='P2'; if(thEl){thEl.value='P2'; thEl.disabled=true;}} else if(thEl && !(document.getElementById('metalHead')&&document.getElementById('metalHead').checked) && !(document.getElementById('riserType')&&document.getElementById('riserType').value==='flex')) thEl.disabled=false;
+ let p=Number(r.price);
+ if((cfg.phaseMode==='singleOptional3_10'||cfg.phaseMode==='singleOptional3_10_end')&&phase==='3')p*=1.10;
+ if(thEl) p+=Number(thEl.options[thEl.selectedIndex].dataset.adder||0);
+ const mh=document.getElementById('metalHead'); if(mh&&mh.checked)p+=Number(cfg.metalHeadAdder||0);
+ const typ=document.getElementById('riserType'); if(typ){const vl=Number(document.getElementById('vertical').value),std=Number(r.length||0); if(typ.value==='rigid'&&vl>std)p+=(vl-std)*Number(cfg.verticalAdder||0); if(typ.value==='flex'){p+=220;if(vl>48)p+=((vl-48)/12)*87;}}
+ const deep=document.getElementById('deepRiser'); if(deep){const v=Math.max(12,Number(deep.value)||12);p+=v*Number(cfg.riserAdder||0);}
+ const plug=document.getElementById('plug'); if(plug&&plug.checked)p+=44;
+ const conduit=document.getElementById('conduit'); if(conduit&&Number(conduit.value)>36)p+=((Number(conduit.value)-36)/12)*4;
+ const model=buildModel(r,phase,thermal); const amps=(phase==='3'?Number(r.watts)/(Number(r.voltage)*Math.sqrt(3)):Number(r.watts)/Number(r.voltage));
+ const parts=["Varipower Small Tank and Screwplug Heater",cfg.material,`${r.voltage}V`,phase==='3'?'Three Phase':'Single Phase',`${r.watts}W`]; if(r.hotzone)parts.push(`${r.hotzone} in. hot zone`); if(r.length)parts.push(`${r.length} in. length`); if(thermal&&thEl){const thermalText=thEl.options[thEl.selectedIndex].textContent;const tm=thermalText.match(/^\S+\s+(Replaceable|Resettable),\s*(.+)$/i);parts.push(tm?`${thermal} ${tm[1]} Fuse (${tm[2]})`:`${thermal} Fuse`);} if(mh&&mh.checked)parts.push('welded metal head'); if(typ)parts.push(`${document.getElementById('vertical').value} in. ${typ.value==='flex'?'flexible':'rigid'} riser`); if(deep)parts.push(`${deep.value} in. vertical riser`); if(plug&&plug.checked)parts.push('plug-in heater option'); if(conduit)parts.push(`${conduit.value} in. leads/conduit`);
+ document.getElementById('out-part').innerText=model; document.getElementById('out-amps').innerText=amps.toFixed(2); document.getElementById('out-price').innerText=money(p); document.getElementById('out-dist-price').innerText=money(p*0.65); document.getElementById('out-desc').innerText=parts.join(', ');
+ const b=document.getElementById('copy-btn');b.innerText='Copy';b.classList.remove('copied');
+}
+function copyPart(){const t=document.getElementById('out-part').innerText; navigator.clipboard.writeText(t).then(()=>{const b=document.getElementById('copy-btn');b.innerText='Copied!';b.classList.add('copied');setTimeout(()=>{b.innerText='Copy';b.classList.remove('copied')},2000)})}
+window.onload=init;
+</script></body></html>

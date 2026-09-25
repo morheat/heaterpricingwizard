@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3HXOL Series Heater Pricing Wizard</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; color: #333; margin: 0; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h1 { font-size: 24px; text-align: center; color: #2c3e50; margin-bottom: 25px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; color: #34495e; }
+        select, input[type="number"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 16px; }
+        .checkbox-group { display: flex; align-items: center; margin-top: 10px; margin-bottom: 20px; }
+        .checkbox-group input { width: auto; margin-right: 10px; width: 20px; height: 20px; }
+        .results { margin-top: 30px; padding: 20px; background: #e8f4f8; border-radius: 8px; border-left: 5px solid #3498db; }
+        .results div { margin-bottom: 10px; font-size: 18px; display: flex; align-items: center; }
+        .results span { font-weight: bold; color: #2980b9; }
+        
+        #copy-btn { margin-left: 15px; padding: 4px 12px; font-size: 14px; cursor: pointer; border: 1px solid #bdc3c7; background-color: #fff; color: #2c3e50; border-radius: 4px; transition: all 0.2s; }
+        #copy-btn:hover { background-color: #ecf0f1; }
+        #copy-btn.copied { background-color: #2ecc71; color: white; border-color: #27ae60; }
+
+        .description-box {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px dashed #bdc3c7;
+            font-size: 15px !important;
+            color: #2c3e50;
+            display: block !important;
+            line-height: 1.5;
+        }
+        .description-box span {
+            color: #333;
+            font-weight: normal;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a href="index.html" style="display:inline-block; margin-bottom:15px; color:#2980b9; text-decoration:none; font-size:14px;">← Back to PTFE heaters</a>
+    <h1>3HXOL Series Pricing Wizard (Single Phase)</h1>
+
+    <div class="form-group">
+        <label for="wattage">Wattage (W)</label>
+        <select id="wattage" onchange="updateVoltages()">
+            <option value="1000">1000</option>
+            <option value="2000">2000</option>
+            <option value="3000">3000</option>
+            <option value="4000">4000</option>
+            <option value="5000">5000</option>
+            <option value="6000">6000</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="voltage">Voltage (V)</label>
+        <select id="voltage" onchange="updateWidths()"></select>
+    </div>
+
+    <div class="form-group">
+        <label for="width">Width (inches)</label>
+        <select id="width" onchange="updateLengths()"></select>
+    </div>
+
+    <div class="form-group">
+        <label for="length">Length (inches)</label>
+        <select id="length" onchange="calculate()"></select>
+    </div>
+
+    <div class="form-group">
+        <label for="fuse">Fuse</label>
+        <select id="fuse" onchange="calculate()">
+            <option value="P1">P1</option>
+            <option value="P2">P2</option>
+            <option value="P3">P3</option>
+            <option value="P4">P4</option>
+            <option value="P8">P8 (+$48)</option>
+        </select>
+    </div>
+
+    <div class="checkbox-group">
+        <input type="checkbox" id="guard" onchange="calculate()">
+        <label for="guard" style="margin-bottom: 0;">Include Guard?</label>
+    </div>
+
+    <div class="form-group">
+        <label for="conduit">Conduit Length (inches)</label>
+        <input type="number" id="conduit" value="36" min="1" oninput="calculate()">
+        <small style="color:#7f8c8d;">Standard 36". Extra lengths add $10/ft.</small>
+    </div>
+
+    <div class="results">
+        <div>
+            Part Number: <span id="out-part" style="margin-left: 5px;"></span>
+            <button id="copy-btn" onclick="copyPart()">Copy</button>
+        </div>
+        <div>Amps: <span id="out-amps" style="margin-left: 5px;"></span> A</div>
+        <div>Retail Price: $<span id="out-price" style="margin-left: 5px;"></span></div>
+        <div>Distributor Price: $<span id="out-dist-price" style="margin-left: 5px;"></span></div>
+        <div class="description-box">
+            <strong>Description:</strong><br>
+            <span id="out-desc"></span>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 3HXOL Series Database mapped exactly to spreadsheet
+    const heaterConfigs = [
+        { watts: 1000, width: 2, length: 11, price: 1267, guard: 130 },
+        { watts: 1000, width: 4, length: 8,  price: 1267, guard: 130 },
+
+        { watts: 2000, width: 4, length: 13, price: 1720, guard: 141 },
+        { watts: 2000, width: 5, length: 10, price: 1720, guard: 141 },
+        { watts: 2000, width: 6, length: 8,  price: 1720, guard: 141 },
+
+        { watts: 3000, width: 4, length: 18, price: 2209, guard: 152 },
+        { watts: 3000, width: 5, length: 12, price: 2209, guard: 152 },
+        { watts: 3000, width: 6, length: 11, price: 2209, guard: 152 },
+        { watts: 3000, width: 8, length: 8,  price: 2209, guard: 152 },
+
+        { watts: 4000, width: 5, length: 18, price: 2317, guard: 162 },
+        { watts: 4000, width: 6, length: 14, price: 2317, guard: 162 },
+        { watts: 4000, width: 8, length: 11, price: 2317, guard: 162 },
+
+        { watts: 5000, width: 6, length: 18, price: 2630, guard: 175 },
+        { watts: 5000, width: 8, length: 13, price: 2630, guard: 175 },
+        { watts: 5000, width: 9, length: 11, price: 2630, guard: 175 },
+        { watts: 5000, width: 10, length: 10, price: 2630, guard: 175 },
+
+        { watts: 6000, width: 7, length: 18, price: 2914, guard: 175 },
+        { watts: 6000, width: 8, length: 15, price: 2914, guard: 175 },
+        { watts: 6000, width: 9, length: 13, price: 2914, guard: 175 },
+        { watts: 6000, width: 10, length: 12, price: 2914, guard: 175 },
+        { watts: 6000, width: 11, length: 11, price: 2914, guard: 175 },
+    ];
+
+    // Map of voltages to their specific part number code digits
+    const voltageCodes = {
+        120: "1",
+        240: "2",
+        380: "3",
+        480: "4",
+        415: "5",
+        600: "6",
+        400: "7",
+        208: "8",
+        220: "9",
+        200: "0"
+    };
+
+    // Millimeter mapping for description
+    const mmMap = {
+        2: "51", 4: "102", 5: "127", 6: "152", 7: "178", 8: "203", 9: "229",
+        10: "254", 11: "279", 12: "305", 13: "330", 14: "356", 15: "381", 18: "457"
+    };
+
+    // Fuse type mapping for description
+    const fuseMap = {
+        "P1": "P1 Replaceable Fuse (190degF)",
+        "P4": "P4 Replaceable Fuse (220degF)",
+        "P2": "P2 Resettable Fuse (190degF)",
+        "P3": "P3 Resettable Fuse (250degF)",
+        "P8": "P8 Resettable Fuse (210degF)"
+    };
+
+    function updateVoltages() {
+        const wSelect = parseInt(document.getElementById('wattage').value);
+        const vSelect = document.getElementById('voltage');
+        vSelect.innerHTML = ''; 
+
+        // Standard voltages
+        const allVoltages = [120, 200, 208, 220, 240, 380, 400, 415, 480, 600];
+        
+        allVoltages.forEach(v => {
+            // Apply standard factory rule: 600V not available on 5kW and 6kW heaters
+            if (v === 600 && (wSelect === 5000 || wSelect === 6000)) {
+                return; 
+            }
+            let opt = document.createElement('option');
+            opt.value = v;
+            opt.textContent = v + "V";
+            vSelect.appendChild(opt);
+        });
+
+        updateWidths();
+    }
+
+    function updateWidths() {
+        const wSelect = parseInt(document.getElementById('wattage').value);
+        const widthSelect = document.getElementById('width');
+        widthSelect.innerHTML = '';
+
+        // Extract available Widths for chosen Wattage
+        const availableWidths = [...new Set(heaterConfigs.filter(h => h.watts === wSelect).map(h => h.width))];
+        
+        availableWidths.sort((a, b) => a - b).forEach(w => {
+            let opt = document.createElement('option');
+            opt.value = w;
+            opt.textContent = w + '"';
+            widthSelect.appendChild(opt);
+        });
+
+        updateLengths();
+    }
+
+    function updateLengths() {
+        const wSelect = parseInt(document.getElementById('wattage').value);
+        const widthSelect = parseInt(document.getElementById('width').value);
+        const lengthSelect = document.getElementById('length');
+        lengthSelect.innerHTML = '';
+
+        // Extract available Lengths for chosen Wattage and Width
+        const availableLengths = heaterConfigs.filter(h => h.watts === wSelect && h.width === widthSelect).map(h => h.length);
+        
+        availableLengths.sort((a, b) => a - b).forEach(l => {
+            let opt = document.createElement('option');
+            opt.value = l;
+            opt.textContent = l + '"';
+            lengthSelect.appendChild(opt);
+        });
+
+        calculate();
+    }
+
+    function calculate() {
+        const wSelect = parseInt(document.getElementById('wattage').value);
+        const vSelect = parseInt(document.getElementById('voltage').value);
+        const widthSelect = parseInt(document.getElementById('width').value);
+        const lengthSelect = parseInt(document.getElementById('length').value);
+        const fuse = document.getElementById('fuse').value;
+        const includeGuard = document.getElementById('guard').checked;
+        const conduitLength = parseInt(document.getElementById('conduit').value) || 36;
+        
+        const heater = heaterConfigs.find(h => h.watts === wSelect && h.width === widthSelect && h.length === lengthSelect);
+        if (!heater) return;
+
+        let finalPrice = heater.price;
+        
+        // Generate Base Part Number
+        const kw = wSelect / 1000;
+        const vCode = voltageCodes[vSelect] || "1";
+        const paddedWidth = widthSelect < 10 ? '0' + widthSelect : widthSelect;
+        
+        // Single phase explicitly does not have a 1- prefix
+        let generatedPart = `3HXOL${kw}${vCode}${paddedWidth}-${lengthSelect}L-${fuse}`;
+
+        // Process Fuse Surcharge
+        if (fuse === 'P8') {
+            finalPrice += 48;
+        }
+
+        // Guard Selection
+        if (includeGuard) {
+            finalPrice += heater.guard;
+        }
+
+        // Conduit Length Selection
+        if (conduitLength > 36) {
+            generatedPart += "-X" + conduitLength;
+            const extraFeet = (conduitLength - 36) / 12;
+            finalPrice += (extraFeet * 10); 
+        }
+
+        // Calculate Single-Phase Amps (Power / Voltage)
+        const amps = (wSelect / vSelect).toFixed(2);
+
+        const distributorPrice = finalPrice * 0.65;
+
+        // Generate Description String
+        // Series, Voltage, Phase, Wattage, Width, Length, Conduit Length, Fuse type
+        const seriesDesc = "Flex Riser Bottom PTFE Heaters";
+        const voltageDesc = vSelect + "V";
+        const phaseDesc = "Single Phase";
+        const wattageDesc = wSelect + "W";
+        const widthDesc = widthSelect + '"' + (mmMap[widthSelect] || '') + 'mm Width';
+        const lengthDesc = lengthSelect + '"' + (mmMap[lengthSelect] || '') + 'mm Length';
+        const conduitDesc = conduitLength + '" Teflon conduit';
+        const fuseDesc = fuseMap[fuse];
+
+        const descriptionString = `${seriesDesc}, ${voltageDesc}, ${phaseDesc}, ${wattageDesc}, ${widthDesc}, ${lengthDesc}, ${conduitDesc}, ${fuseDesc}`;
+
+        // Output Values
+        document.getElementById('out-part').innerText = generatedPart;
+        document.getElementById('out-amps').innerText = amps;
+        document.getElementById('out-price').innerText = finalPrice.toFixed(2);
+        document.getElementById('out-dist-price').innerText = distributorPrice.toFixed(2);
+        document.getElementById('out-desc').innerText = descriptionString;
+        
+        // Reset Copy Button Styling
+        const copyBtn = document.getElementById('copy-btn');
+        copyBtn.innerText = 'Copy';
+        copyBtn.classList.remove('copied');
+    }
+
+    function copyPart() {
+        const partText = document.getElementById('out-part').innerText;
+        navigator.clipboard.writeText(partText).then(() => {
+            const btn = document.getElementById('copy-btn');
+            btn.innerText = 'Copied!';
+            btn.classList.add('copied');
+            
+            setTimeout(() => {
+                btn.innerText = 'Copy';
+                btn.classList.remove('copied');
+            }, 2000);
+        }).catch(err => {
+            console.error('Failed to copy text: ', err);
+        });
+    }
+
+    window.onload = updateVoltages;
+</script>
+
+</body>
+</html>
