@@ -221,6 +221,7 @@
         // 1. Inject Voltage Code into the Part Number
         const vCode = voltageCodes[vSelect] || "1";
         let generatedPart = heater.template.replace('{v}', vCode);
+//insertion length
 
         // 2. Process Lengths
         const customLength = parseInt(document.getElementById('length').value) || heater.length;
