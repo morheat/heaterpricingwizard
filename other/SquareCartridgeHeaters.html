@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Square Cartridge Heaters Pricing Calculator</title>
+    <script>
+        // Square Cartridge Heaters Matrix Data from Catalogs (3/8", 1/2", 5/8")
+        const cartridgeCatalogs = {
+            "38": {
+                name: "3/8\" Square Cartridge Heaters",
+                matrix: [45.20, 52.23, 59.26, 66.29, 73.32, 80.35, 87.38, 94.41, 101.44, 108.47, 115.50, 122.53],
+                addlInch: 7.03,
+                defaultLead: "22ga"
+            },
+            "12": {
+                name: "1/2\" Square Cartridge Heaters",
+                matrix: [48.06, 56.72, 65.38, 74.04, 82.70, 91.36, 100.02, 108.68, 117.34, 128.00, 134.66, 143.32],
+                addlInch: 8.66,
+                defaultLead: "22ga"
+            },
+            "58": {
+                name: "5/8\" Square Cartridge Heaters",
+                matrix: [49.70, 59.77, 69.84, 79.91, 89.98, 100.05, 110.12, 120.19, 130.26, 140.33, 150.40, 160.47],
+                addlInch: 10.07,
+                defaultLead: "18ga"
+            }
+        };
+
+        const leadLengthsArr = [10, 12, 18, 24, 30, 36, 48, 60, 72];
+
+        const leadAdders = {
+            "38": {
+                "22ga": [0.00, 1.08, 4.32, 7.56, 10.80, 14.04, 20.52, 27.00, 33.48, 0.54],
+                "18ga": [1.80, 3.24, 7.56, 11.88, 16.20, 20.52, 29.16, 37.80, 46.44, 0.72],
+                "sjo18_2": [21.80, 22.92, 26.28, 29.64, 33.00, 36.36, 43.08, 49.80, 56.52, 0.56]
+            },
+            "12": {
+                "22ga": [0.00, 1.08, 4.32, 7.56, 10.80, 14.04, 20.52, 27.00, 33.48, 0.54],
+                "18ga": [1.80, 3.24, 7.56, 11.88, 16.20, 20.52, 29.16, 37.80, 46.44, 0.72],
+                "sjo18_2": [21.80, 22.92, 26.28, 29.64, 33.00, 36.36, 43.08, 49.80, 56.52, 0.56],
+                "sjo18_3": [37.65, 39.21, 43.89, 48.57, 53.25, 57.93, 67.29, 76.65, 86.01, 0.78]
+            },
+            "58": {
+                "18ga": [0.00, 1.44, 5.76, 10.08, 14.40, 18.72, 27.36, 36.00, 44.64, 0.72],
+                "16ga": [1.80, 3.60, 9.00, 14.40, 19.80, 25.20, 36.00, 46.80, 57.60, 0.90],
+                "14ga": [4.70, 7.08, 14.22, 21.36, 28.50, 35.64, 49.92, 64.20, 78.48, 1.19],
+                "sjo18_2": [20.00, 21.12, 24.48, 27.84, 31.20, 34.56, 41.28, 48.00, 54.72, 0.56],
+                "sjo18_3": [35.85, 37.41, 42.09, 46.77, 51.45, 56.13, 65.49, 74.85, 84.21, 0.78]
+            }
+        };
+
+        function updateLeadOptions() {
+            const size = document.getElementById('heaterSize').value;
+            const leadSelect = document.getElementById('leadType');
+            leadSelect.innerHTML = "";
+
+            let optionsKeys = Object.keys(leadAdders[size]);
+            optionsKeys.forEach(key => {
+                let opt = document.createElement('option');
+                opt.value = key;
+                opt.text = key.toUpperCase().replace("SJO18_2", "SJO Cord (2 cond, 18 ga)").replace("SJO18_3", "SJO Cord (3 cond, 18 ga)");
+                leadSelect.appendChild(opt);
+            });
+            calculatePrice();
+        }
+
+        function getLeadAdderCost(size, leadType, totalLeadInches) {
+            let table = leadAdders[size][leadType];
+            if (!table) return 0;
+
+            let idx = leadLengthsArr.indexOf(totalLeadInches);
+            if (idx !== -1) {
+                return table[idx];
+            } else {
+                let perInchRate = table[9];
+                let base10Cost = table[0];
+                let inchDiff = totalLeadInches - 10;
+                return base10Cost + (inchDiff * perInchRate);
+            }
+        }
+
+        function calculatePrice() {
+            const size = document.getElementById('heaterSize').value;
+            const length = parseInt(document.getElementById('length').value) || 1;
+            const catalog = cartridgeCatalogs[size];
+
+            let basePrice = 0;
+            if (length <= 12) {
+                basePrice = catalog.matrix[length - 1];
+            } else {
+                let diff = length - 12;
+                basePrice = catalog.matrix[11] + (diff * catalog.addlInch);
+            }
+
+            const leadType = document.getElementById('leadType').value;
+            const leadInches = parseInt(document.getElementById('leadInches').value) || 10;
+            let leadCost = getLeadAdderCost(size, leadType, leadInches);
+
+            let optionsCost = 0;
+            if (document.getElementById('optRightAngleLeads').checked) optionsCost += 16.68;
+            if (document.getElementById('optCrimped').checked) optionsCost += 0.00;
+            if (document.getElementById('optStrainRelief').checked) optionsCost += 16.68;
+            if (document.getElementById('optSpringGuard').checked) optionsCost += 19.21;
+            if (document.getElementById('optCeramicBeads').checked) optionsCost += leadInches * 6.61;
+            if (document.getElementById('optSingleSleeve').checked) optionsCost += leadInches * 0.61;
+            if (document.getElementById('optDoubleSleeve').checked) optionsCost += leadInches * 0.83;
+
+            const endSeal = document.getElementById('endSeal').value;
+            if (endSeal === "teflon") optionsCost += 7.74;
+            else if (endSeal === "lava") optionsCost += 23.08;
+            else if (endSeal === "cement") optionsCost += 8.31;
+            else if (endSeal === "rtv") optionsCost += 8.31;
+            else if (endSeal === "epoxy") optionsCost += 11.60;
+            else if (endSeal === "epoxylite") optionsCost += 20.39;
+            else if (endSeal === "epoxyRtv") optionsCost += 18.29;
+
+            if (document.getElementById('optGroundWire').checked) {
+                optionsCost += 13.67 + (leadInches * 0.25);
+            }
+
+            const protectionType = document.getElementById('protectionType').value;
+            const protLength = parseInt(document.getElementById('protLength').value) || 8;
+            
+            if (protectionType === "straightArmor") optionsCost += 16.41 + (Math.max(0, protLength - 8) * 1.30);
+            else if (protectionType === "rtAngleArmor") optionsCost += 28.18 + (Math.max(0, protLength - 8) * 1.30);
+            else if (protectionType === "straightBraid") optionsCost += 20.26 + (Math.max(0, protLength - 8) * 1.12);
+            else if (protectionType === "rtAngleBraid") optionsCost += 28.70 + (Math.max(0, protLength - 8) * 1.12);
+
+            if (document.getElementById('optTC').checked) {
+                optionsCost += 32.15 + (Math.max(0, leadInches - 10) * 0.59);
+            }
+
+            const fitting = document.getElementById('fitting').value;
+            if (fitting === "flange304") optionsCost += 16.62;
+            else if (fitting === "nonStdFlange304") optionsCost += 33.01;
+            else if (fitting === "nonStdFlange316") optionsCost += 40.18;
+            else if (fitting === "ringStop") optionsCost += 16.68;
+
+            if (document.getElementById('optDistWattage').checked) optionsCost += 17.80;
+            if (document.getElementById('optTrim').checked) optionsCost += 12.44;
+            if (document.getElementById('optBent').checked) optionsCost += 14.01;
+            if (document.getElementById('optDualZone').checked) optionsCost += 17.52;
+            if (document.getElementById('optPreOxide').checked) optionsCost += 19.48;
+
+            let baseUnitPrice = basePrice + leadCost + optionsCost;
+
+            // Quantity tiers derived from square cartridge pricing image:
+            // 1 - 1: 1.0000 ($100.22)
+            // 2 - 4: 0.8125 ($81.43)
+            // 5 - 9: 0.6250 ($62.64)
+            // 10 - 24: 0.5000 ($50.11)
+            // 25 - 49: 0.3750 ($37.58)
+            // 50 - 99: 0.3500 ($35.08)
+            // 100+: 0.3375 ($33.82)
+            const tiers = [
+                { range: "1 - 1", mult: 1.0000 },
+                { range: "2 - 4", mult: 0.8125 },
+                { range: "5 - 9", mult: 0.6250 },
+                { range: "10 - 24", mult: 0.5000 },
+                { range: "25 - 49", mult: 0.3750 },
+                { range: "50 - 99", mult: 0.3500 },
+                { range: "100+", mult: 0.3375 }
+            ];
+
+            document.getElementById('totalPrice').innerText = '$' + baseUnitPrice.toFixed(2);
+
+            let tbody = document.getElementById('qtyTableBody');
+            tbody.innerHTML = '';
+            tiers.forEach(tier => {
+                let tierPrice = baseUnitPrice * tier.mult;
+                let tr = document.createElement('tr');
+                tr.innerHTML = `<td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${tier.range}</td>` +
+                               `<td style="padding: 8px; border-bottom: 1px solid #e2e8f0; text-align: right;">$${tierPrice.toFixed(2)}</td>`;
+                tbody.appendChild(tr);
+            });
+
+            let sizeText = size === "38" ? "3/8 in" : (size === "12" ? "1/2 in" : "5/8 in");
+            let descString = `${sizeText} x ${length}.00 in long Square Cartridge Heater, 240.00 volts 90.00 watts, 304 SS sheath, with ${leadInches}.00 in of 22 ga 550C Hi-Temp leads. Swaged in Leads Termination.`;
+            document.getElementById('descriptionBlurb').innerText = descString;
+        }
+
+        window.onload = function() {
+            updateLeadOptions();
+        }
+    </script>
+    <style>
+        :root {
+            --primary-color: #1a365d;
+            --secondary-color: #2b6cb0;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --text-color: #2d3748;
+            --border-color: #e2e8f0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.5;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 5px;
+            font-size: 24px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #718096;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        select, input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+            background-color: #fff;
+            box-sizing: border-box;
+        }
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 3px rgba(43, 108, 176, 0.1);
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .checkbox-item input {
+            width: auto;
+        }
+        .checkbox-item label {
+            margin-bottom: 0;
+            font-weight: normal;
+            font-size: 13px;
+        }
+        .summary-card {
+            background-color: #ebf8ff;
+            border: 1px solid #bee3f8;
+            border-radius: 6px;
+            padding: 20px;
+            margin-top: 30px;
+            text-align: center;
+        }
+        .summary-card h2 {
+            margin: 0 0 10px 0;
+            color: var(--primary-color);
+            font-size: 18px;
+        }
+        .total-price {
+            font-size: 32px;
+            font-weight: bold;
+            color: #2b6cb0;
+        }
+        .note {
+            font-size: 12px;
+            color: #718096;
+            margin-top: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: #fff;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+        th {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 10px;
+            font-size: 14px;
+            text-align: left;
+        }
+        th:last-child {
+            text-align: right;
+        }
+        .desc-box {
+            background: #f7fafc;
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        .desc-box h3 {
+            margin: 0 0 5px 0;
+            color: var(--primary-color);
+            font-size: 15px;
+        }
+    
+        .back-nav {
+            max-width: 900px;
+            margin: 0 auto 14px;
+        }
+        .back-nav a {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #2b6cb0;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .back-nav a:hover {
+            text-decoration: underline;
+        }
+</style>
+</head>
+<body>
+<div class="back-nav" data-back-nav="true"><a href="index.html">← Back to Other Heaters</a></div>
+
+
+<div class="container">
+    <h1>Square Cartridge Heaters Pricing Calculator</h1>
+
+    <div class="grid-2">
+        <div class="form-group">
+            <label for="heaterSize">Cartridge Series / Size</label>
+            <select id="heaterSize" onchange="updateLeadOptions()">
+                <option value="38" selected>3/8" Square Cartridge Heaters</option>
+                <option value="12">1/2" Square Cartridge Heaters</option>
+                <option value="58">5/8" Square Cartridge Heaters</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="length">Sheath Length (Inches, 1 to 12+)</label>
+            <input type="number" id="length" min="1" max="60" value="9" oninput="calculatePrice()" onchange="calculatePrice()">
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <div class="form-group">
+            <label for="leadType">Lead Wire Type / Gauge</label>
+            <select id="leadType" onchange="calculatePrice()" oninput="calculatePrice()">
+                <!-- Populated dynamically -->
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="leadInches">Total Lead Length (Inches)</label>
+            <input type="number" id="leadInches" min="1" max="120" value="30" oninput="calculatePrice()" onchange="calculatePrice()">
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <div class="form-group">
+            <label for="endSeal">End Seal Type</label>
+            <select id="endSeal" onchange="calculatePrice()" oninput="calculatePrice()">
+                <option value="none">Standard / None</option>
+                <option value="teflon">Teflon Seal ($7.74)</option>
+                <option value="lava">Lava Seal ($23.08)</option>
+                <option value="cement">Cement Potting ($8.31)</option>
+                <option value="rtv">RTV Potting ($8.31)</option>
+                <option value="epoxy">Epoxy Potting ($11.60)</option>
+                <option value="epoxylite">Epoxylite Potting ($20.39)</option>
+                <option value="epoxyRtv">Epoxy over RTV Potting ($18.29)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="fitting">Fittings & Flanges</label>
+            <select id="fitting" onchange="calculatePrice()" oninput="calculatePrice()">
+                <option value="none">None</option>
+                <option value="flange304">1", 1-1/2", or 2" Diameter Flange (304 SS) - $16.62</option>
+                <option value="nonStdFlange304">Non-Standard Flange (304 SS) - $33.01</option>
+                <option value="nonStdFlange316">Non-Standard Flange (316 SS) - $40.18</option>
+                <option value="ringStop">Ring Stop, Weld Bead, or Tab Stop (304 SS) - $16.68</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <div class="form-group">
+            <label for="protectionType">Armor / Braid Lead Protection</label>
+            <select id="protectionType" onchange="calculatePrice()" oninput="calculatePrice()">
+                <option value="none">None</option>
+                <option value="straightArmor">Straight SS Armor (Flex Hose)</option>
+                <option value="rtAngleArmor">Right Angle SS Armor</option>
+                <option value="straightBraid">Straight SS Braid</option>
+                <option value="rtAngleBraid">Right Angle SS Braid</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="protLength">Armor / Braid Length (Inches)</label>
+            <input type="number" id="protLength" min="0" max="120" value="8" oninput="calculatePrice()" onchange="calculatePrice()">
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>Lead Configurations, Options & Add-ons</label>
+        <div class="checkbox-grid">
+            <div class="checkbox-item">
+                <input type="checkbox" id="optRightAngleLeads" onchange="calculatePrice()" oninput="calculatePrice()">
+                <label for="optRightAngleLeads">Right Angle Leads ($16.68)</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="optCrimped" onchange="calculatePrice()" oninput="calculatePrice()">
+                <label for="optCrimped">Crimped on Leads ($0.00)</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="optStrainRelief" onchange="calculatePrice()" oninput="calculatePrice()">
+                <label for="optStrainRelief">Strain Relief Clip ($16.68)</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="optSpringGuard" onchange="calculatePrice()" oninput="calculatePrice()">
+                <label for="optSpringGuard">Spring Guard ($19.21)</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="optCeramicBeads" onchange="calculatePrice()" oninput="calculatePrice()">
+                <label for="optCeramicBeads">Ceramic Beads ($6.61/in)</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="optSingleSleeve" onchange="calculatePrice()" oninput="calculatePrice()">
+                <label for="optSingleSleeve">Single sleeve over leads ($0.61/in)</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="optDoubleSleeve" onchange="calculatePrice()" oninput="calculatePrice()">
+                <label for="optDoubleSleeve">Sleeve on each lead ($0.83/in)</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="optGroundWire" onchange="calculatePrice()" oninput="calculatePrice()">
+                <label for="optGroundWire">Ground Wire ($13.67 + $0.25/in)</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="optTC" onchange="calculatePrice()" oninput="calculatePrice()">
+                <label for="optTC">Internal Thermocouple ($32.15 base)</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="optDistWattage" onchange="calculatePrice()" oninput="calculatePrice()">
+                <label for="optDistWattage">Distributed Wattage ($17.80)</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="optTrim" onchange="calculatePrice()" oninput="calculatePrice()">
+                <label for="optTrim">Trim to Length ($12.44)</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="optBent" onchange="calculatePrice()" oninput="calculatePrice()">
+                <label for="optBent">Bent Heater ($14.01)</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="optDualZone" onchange="calculatePrice()" oninput="calculatePrice()">
+                <label for="optDualZone">Dual Zone Heater ($17.52)</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="optPreOxide" onchange="calculatePrice()" oninput="calculatePrice()">
+                <label for="optPreOxide">Pre-oxidize heater ($19.48)</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="summary-card">
+        <h2>List Price</h2>
+        <div class="total-price" id="totalPrice">$0.00</div>
+    </div>
+
+    <div style="margin-top: 25px;">
+      
+        <table>
+            <thead>
+                <tr>
+                    <th>Quantity</th>
+                    <th style="text-align: right;">Unit Price</th>
+                </tr>
+            </thead>
+            <tbody id="qtyTableBody">
+                <!-- Dynamically populated -->
+            </tbody>
+        </table>
+    </div>
+
+    <div class="desc-box">
+        <h3>Description</h3>
+        <p id="descriptionBlurb" style="margin: 0; color: #4a5568; font-family: monospace;"></p>
+    </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backer Marathon - Non-Swaged Cartridge Heater Pricing Calculator</title>
+    <script>
+        // Pricing extracted from Backer Marathon Spring 2024 Price Booklet (Non-Swaged section)
+        const basePricing = {
+            "5/8": {
+                lengths: { 2: 63.25, 3: 67.63, 4: 72.01, 5: 76.39, 6: 80.77, 7: 85.15, 8: 89.53, 9: 93.91, 10: 98.29, 11: 102.67, 12: 107.05 },
+                addInch: 4.38
+            },
+            "3/4": {
+                lengths: { 2: 75.79, 3: 80.82, 4: 85.85, 5: 90.88, 6: 95.91, 7: 100.94, 8: 105.97, 9: 111.00, 10: 116.03, 11: 121.06, 12: 126.09 },
+                addInch: 5.03
+            },
+            "1": {
+                lengths: { 2: 90.41, 3: 97.72, 4: 105.03, 5: 112.34, 6: 119.65, 7: 126.96, 8: 134.27, 9: 141.58, 10: 148.89, 11: 156.20, 12: 163.51 },
+                addInch: 7.31
+            },
+            "3/8": {
+                lengths: { 1: 38.21, 2: 46.33, 3: 54.45, 4: 62.57, 5: 70.69, 6: 78.81, 7: 86.93, 8: 95.05, 9: 103.17, 10: 111.29, 11: 119.41, 12: 127.53 },
+                addInch: 8.12
+            },
+            "1/2": {
+                lengths: { 1: 44.43, 2: 48.09, 3: 51.75, 4: 55.41, 5: 59.07, 6: 62.73, 7: 66.39, 8: 70.05, 9: 73.71, 10: 77.37, 11: 81.03, 12: 84.69 },
+                addInch: 3.66
+            }
+        };
+
+        const leadLengthAdders = {
+            "18": { 10: 0.00, 12: 1.44, 18: 5.76, 24: 10.08, 30: 14.40, 36: 18.72, 48: 27.36, 60: 36.00, 72: 44.64, perInch: 0.72 },
+            "16": { 10: 1.80, 12: 3.60, 18: 9.00, 24: 14.40, 30: 19.80, 36: 25.20, 48: 36.00, 60: 46.80, 72: 57.60, perInch: 0.90 },
+            "14": { 10: 4.70, 12: 7.08, 18: 14.22, 24: 21.36, 30: 28.50, 36: 35.64, 48: 49.92, 60: 64.20, 72: 78.48, perInch: 1.19 },
+            "22": { 10: 0.00, 12: 1.08, 18: 4.32, 24: 7.56, 30: 10.80, 36: 14.04, 48: 20.52, 60: 27.00, 72: 33.48, perInch: 0.54 }
+        };
+
+        const addOnPrices = {
+            endSeal: {
+                none: 0.00,
+                rtv: 0.00,
+                epoxy: 11.60,
+                epoxylite: 20.39,
+                epoxyOverRtv: 18.29,
+                cement: 8.31,
+                teflonSeal: 7.74,
+                lavaSeal: 23.08
+            },
+            options: {
+                none: 0,
+                distributedWattage: 17.80,
+                dualZone: 17.52,
+                doubleEnded: 40.47
+            }
+        };
+
+        function calculatePrice() {
+            const diameter = document.getElementById('diameter').value;
+            const length = parseInt(document.getElementById('length').value) || 2;
+            const phase = document.getElementById('phase').value;
+            const voltage = document.getElementById('voltage').value.trim();
+            const wattage = document.getElementById('wattage').value.trim();
+            const leadType = document.getElementById('leadType').value;
+            const leadLength = parseInt(document.getElementById('leadLength').value) || 10;
+            const endSeal = document.getElementById('endSeal').value;
+            const optionType = document.getElementById('optionType').value;
+
+            let heaterProfile = basePricing[diameter] || { lengths: { 2: 63.25 }, addInch: 4.38 };
+            let basePrice = 0;
+            let effLen = Math.max(1, length);
+
+            if (heaterProfile.lengths[effLen] !== undefined) {
+                basePrice = heaterProfile.lengths[effLen];
+            } else {
+                let maxStdLen = Math.max(...Object.keys(heaterProfile.lengths).map(Number));
+                basePrice = heaterProfile.lengths[maxStdLen] + (effLen - maxStdLen) * heaterProfile.addInch;
+            }
+
+            let leadCost = 0;
+            if (leadLength_table = leadLengthAdders[leadType]) {
+                let standardLengths = [10, 12, 18, 24, 30, 36, 48, 60, 72];
+                if (standardLengths.includes(leadLength)) {
+                    leadCost = leadLength_table[leadLength];
+                } else {
+                    let lower = 72;
+                    for (let i = standardLengths.length - 1; i >= 0; i--) {
+                        if (leadLength >= standardLengths[i]) {
+                            lower = standardLengths[i];
+                            break;
+                        }
+                    }
+                    if (leadLength < 10) leadCost = leadLength_table[10];
+                    else leadCost = leadLength_table[lower] + (leadLength - lower) * leadLength_table.perInch;
+                }
+            }
+
+            let endSealCost = addOnPrices.endSeal[endSeal] || 0;
+            let optionCost = addOnPrices.options[optionType] || 0;
+
+            let baseUnitPrice = basePrice + leadCost + endSealCost + optionCost;
+
+            const tiers = [
+                { range: "1 - 1", mult: 1.0000 },
+                { range: "2 - 4", mult: 0.8124 },
+                { range: "5 - 9", mult: 0.6250 },
+                { range: "10 - 24", mult: 0.5000 },
+                { range: "25 - 49", mult: 0.3750 },
+                { range: "50 - 99", mult: 0.3499 },
+                { range: "100+", mult: 0.3374 }
+            ];
+
+            document.getElementById('totalPrice').innerText = '$' + baseUnitPrice.toFixed(2);
+
+            let tbody = document.getElementById('qtyTableBody');
+            tbody.innerHTML = '';
+            tiers.forEach(tier => {
+                let tierPrice = baseUnitPrice * tier.mult;
+                let tr = document.createElement('tr');
+                tr.innerHTML = `<td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${tier.range}</td>` +
+                               `<td style="padding: 8px; border-bottom: 1px solid #e2e8f0; text-align: right;">$${tierPrice.toFixed(2)}</td>`;
+                tbody.appendChild(tr);
+            });
+
+            let leadGaugeText = leadType === '18' ? '18 ga' : (leadType === '16' ? '16 ga' : (leadType === '14' ? '14 ga' : (leadType === '22' ? '22 ga' : leadType)));
+            let sealText = endSeal === 'epoxy' ? 'Epoxy Potting' : (endSeal === 'rtv' ? 'RTV Potting' : (endSeal === 'epoxylite' ? 'Epoxylite Potting' : (endSeal === 'cement' ? 'Cement Potting' : 'Epoxy over RTV Potting')));
+            let descString = `${diameter} in diameter x ${length}.00 in long ${phase} Non-Swaged Cartridge Heater, ${voltage} ${wattage}, ${leadLength}.00 in of ${leadGaugeText} leads. ${sealText}.`;
+            document.getElementById('descriptionBlurb').innerText = descString;
+        }
+
+        window.onload = function() {
+            calculatePrice();
+        }
+    </script>
+    <style>
+        :root {
+            --primary-color: #1a365d;
+            --secondary-color: #2b6cb0;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --text-color: #2d3748;
+            --border-color: #e2e8f0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.5;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 850px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 5px;
+            font-size: 24px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        select, input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+            background-color: #fff;
+            box-sizing: border-box;
+        }
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 3px rgba(43, 108, 176, 0.1);
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .summary-card {
+            background-color: #ebf8ff;
+            border: 1px solid #bee3f8;
+            border-radius: 6px;
+            padding: 20px;
+            margin-top: 30px;
+            text-align: center;
+        }
+        .summary-card h2 {
+            margin: 0 0 10px 0;
+            color: var(--primary-color);
+            font-size: 18px;
+        }
+        .total-price {
+            font-size: 32px;
+            font-weight: bold;
+            color: #2b6cb0;
+        }
+        .desc-box {
+            background: #f7fafc;
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        .desc-box h3 {
+            margin: 0 0 5px 0;
+            color: var(--primary-color);
+            font-size: 15px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: #fff;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+        th {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 10px;
+            font-size: 14px;
+            text-align: left;
+        }
+        th:last-child {
+            text-align: right;
+        }
+    
+        .back-nav {
+            max-width: 850px;
+            margin: 0 auto 14px;
+        }
+        .back-nav a {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #2b6cb0;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .back-nav a:hover {
+            text-decoration: underline;
+        }
+</style>
+</head>
+<body>
+<div class="back-nav" data-back-nav="true"><a href="index.html">← Back to Other Heaters</a></div>
+
+
+<div class="container">
+    <h1>Non-Swaged Cartridge Heaters (304SS Sheath)</h1>
+
+    <div class="grid-2">
+        <div class="form-group">
+            <label for="diameter">Diameter / Size</label>
+            <select id="diameter" onchange="calculatePrice()">
+                <option value="3/8">3/8" Dia</option>
+                <option value="1/2" selected>1/2" Dia</option>
+                <option value="5/8">5/8" Dia</option>
+                <option value="3/4">3/4" Dia</option>
+                <option value="1">1" Dia</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="length">Length (Inches)</label>
+            <input type="number" id="length" min="1" max="120" value="90" oninput="calculatePrice()" onchange="calculatePrice()">
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <div class="form-group">
+            <label for="phase">Phase</label>
+            <select id="phase" onchange="calculatePrice()">
+                <option value="Single Phase" selected>Single Phase</option>
+                <option value="Three Phase">Three Phase</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="voltage">Voltage</label>
+            <input type="text" id="voltage" value="110V" oninput="calculatePrice()" onchange="calculatePrice()">
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <div class="form-group">
+            <label for="wattage">Wattage</label>
+            <input type="text" id="wattage" value="90W" oninput="calculatePrice()" onchange="calculatePrice()">
+        </div>
+
+        <div class="form-group">
+            <label for="leadType">Lead Wire Type / Gauge</label>
+            <select id="leadType" onchange="calculatePrice()">
+                <option value="22" selected>22 ga.</option>
+                <option value="18">18 ga.</option>
+                <option value="16">16 ga.</option>
+                <option value="14">14 ga.</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <div class="form-group">
+            <label for="leadLength">Lead Length (Inches)</label>
+            <input type="number" id="leadLength" min="10" max="120" value="70" oninput="calculatePrice()" onchange="calculatePrice()">
+        </div>
+
+        <div class="form-group">
+            <label for="endSeal">End Seal / Potting</label>
+            <select id="endSeal" onchange="calculatePrice()">
+                <option value="rtv">RTV Potting</option>
+                <option value="epoxy">Epoxy Potting</option>
+                <option value="epoxylite">Epoxylite Potting</option>
+                <option value="cement" selected>Cement Potting</option>
+                <option value="epoxyOverRtv">Epoxy over RTV Potting</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="optionType">Other Options</label>
+        <select id="optionType" onchange="calculatePrice()">
+            <option value="none">None</option>
+            <option value="distributedWattage">Distributed Wattage</option>
+            <option value="dualZone">Dual Zone Heater</option>
+            <option value="doubleEnded">Double ended construction</option>
+        </select>
+    </div>
+
+    <div class="summary-card">
+        <h2>List Price</h2>
+        <div class="total-price" id="totalPrice">$0.00</div>
+    </div>
+
+    <div style="margin-top: 25px;">
+  
+        <table>
+            <thead>
+                <tr>
+                    <th>Quantity</th>
+                    <th style="text-align: right;">Unit Price</th>
+                </tr>
+            </thead>
+            <tbody id="qtyTableBody">
+                <!-- Dynamically populated -->
+            </tbody>
+        </table>
+    </div>
+
+    <div class="desc-box">
+        <h3>Description</h3>
+        <p id="descriptionBlurb" style="margin: 0; color: #4a5568; font-family: monospace;"></p>
+    </div>
+</div>
+
+</body>
+</html>

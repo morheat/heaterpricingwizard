@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Air Heaters Pricing Calculator</title>
+    <script>
+        // Air Heaters Data Catalog
+        const airHeatersData = [
+            { partNo: "AH50050R", termination: "36\" High Temp Leads", volts: 120, watts: 400, price: 88.64 },
+            { partNo: "AH50050T", termination: "36\" High Temp Leads", volts: 240, watts: 400, price: 88.64 },
+            { partNo: "AH50050V", termination: "36\" High Temp Leads", volts: 120, watts: 600, price: 88.64 },
+            { partNo: "AH50050X", termination: "36\" High Temp Leads", volts: 240, watts: 600, price: 88.64 },
+            { partNo: "AH50050S", termination: "3 pin connector", volts: 120, watts: 400, price: 111.55 },
+            { partNo: "AH50050U", termination: "3 pin connector", volts: 240, watts: 400, price: 111.55 },
+            { partNo: "AH50050W", termination: "3 pin connector", volts: 120, watts: 600, price: 111.55 },
+            { partNo: "AH50050Y", termination: "3 pin connector", volts: 240, watts: 600, price: 111.55 }
+        ];
+
+        function updateCatalogSelection() {
+            const partSelect = document.getElementById('partNo').value;
+            const heater = airHeatersData.find(h => h.partNo === partSelect);
+
+            if (heater) {
+                document.getElementById('displayVolts').innerText = heater.volts + ' V';
+                document.getElementById('displayWatts').innerText = heater.watts + ' W';
+                document.getElementById('displayTerm').innerText = heater.termination;
+            }
+            calculatePrice();
+        }
+
+        function calculatePrice() {
+            const partSelect = document.getElementById('partNo').value;
+            const heater = airHeatersData.find(h => h.partNo === partSelect);
+            let basePrice = heater ? heater.price : 88.64;
+
+            let fittingsCost = 0;
+            if (document.getElementById('inletFitting').checked) fittingsCost += 18.58;
+            if (document.getElementById('outletFitting').checked) fittingsCost += 18.58;
+
+            let baseUnitPrice = basePrice + fittingsCost;
+
+            // Quantity tiers derived from air heater pricing image:
+            // 1-1: 1.0000 ($88.64)
+            // 2-4: 0.8125 ($72.02)
+            // 5-9: 0.6250 ($55.40)
+            // 10-24: 0.5000 ($44.32)
+            // 25-49: 0.3750 ($33.24)
+            // 50-99: 0.3500 ($31.02)
+            // 100+: 0.3375 ($29.92)
+            const tiers = [
+                { range: "1 - 1", mult: 1.0000 },
+                { range: "2 - 4", mult: 0.8125 },
+                { range: "5 - 9", mult: 0.6250 },
+                { range: "10 - 24", mult: 0.5000 },
+                { range: "25 - 49", mult: 0.3750 },
+                { range: "50 - 99", mult: 0.3500 },
+                { range: "100+", mult: 0.3375 }
+            ];
+
+            document.getElementById('totalPrice').innerText = '$' + baseUnitPrice.toFixed(2);
+
+            let tbody = document.getElementById('qtyTableBody');
+            tbody.innerHTML = '';
+            tiers.forEach(tier => {
+                let tierPrice = baseUnitPrice * tier.mult;
+                let tr = document.createElement('tr');
+                tr.innerHTML = `<td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${tier.range}</td>` +
+                               `<td style="padding: 8px; border-bottom: 1px solid #e2e8f0; text-align: right;">$${tierPrice.toFixed(2)}</td>`;
+                tbody.appendChild(tr);
+            });
+
+            let voltsText = heater ? heater.volts + "V" : "120V";
+            let wattsText = heater ? heater.watts + "W" : "400W";
+            let termText = heater ? heater.termination : '36" Leads';
+            let descString = `1/2 in.dia. x 5 in. long Air Heater ${voltsText} ${wattsText} with ${termText}.`;
+            document.getElementById('descriptionBlurb').innerText = descString;
+        }
+
+        window.onload = function() {
+            updateCatalogSelection();
+        }
+    </script>
+    <style>
+        :root {
+            --primary-color: #1a365d;
+            --secondary-color: #2b6cb0;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --text-color: #2d3748;
+            --border-color: #e2e8f0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.5;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 5px;
+            font-size: 24px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        select, input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+            background-color: #fff;
+            box-sizing: border-box;
+        }
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 3px rgba(43, 108, 176, 0.1);
+        }
+        .info-box {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .checkbox-item input {
+            width: auto;
+        }
+        .checkbox-item label {
+            margin-bottom: 0;
+            font-weight: normal;
+            font-size: 13px;
+        }
+        .summary-card {
+            background-color: #ebf8ff;
+            border: 1px solid #bee3f8;
+            border-radius: 6px;
+            padding: 20px;
+            margin-top: 30px;
+            text-align: center;
+        }
+        .summary-card h2 {
+            margin: 0 0 10px 0;
+            color: var(--primary-color);
+            font-size: 18px;
+        }
+        .total-price {
+            font-size: 32px;
+            font-weight: bold;
+            color: #2b6cb0;
+        }
+        .desc-box {
+            background: #f7fafc;
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        .desc-box h3 {
+            margin: 0 0 5px 0;
+            color: var(--primary-color);
+            font-size: 15px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: #fff;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+        th {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 10px;
+            font-size: 14px;
+            text-align: left;
+        }
+        th:last-child {
+            text-align: right;
+        }
+    
+        .back-nav {
+            max-width: 800px;
+            margin: 0 auto 14px;
+        }
+        .back-nav a {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #2b6cb0;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .back-nav a:hover {
+            text-decoration: underline;
+        }
+</style>
+</head>
+<body>
+<div class="back-nav" data-back-nav="true"><a href="index.html">← Back to Other Heaters</a></div>
+
+
+<div class="container">
+    <h1>Stock Air Heaters Pricing Calculator</h1>
+
+    <div class="form-group">
+        <label for="partNo">Select Part Number</label>
+        <select id="partNo" onchange="updateCatalogSelection()" oninput="updateCatalogSelection()">
+            <option value="AH50050R">AH50050R (120V, 400W, 36" Leads)</option>
+            <option value="AH50050T">AH50050T (240V, 400W, 36" Leads)</option>
+            <option value="AH50050V">AH50050V (120V, 600W, 36" Leads)</option>
+            <option value="AH50050X">AH50050X (240V, 600W, 36" Leads)</option>
+            <option value="AH50050S">AH50050S (120V, 400W, 3-Pin Connector)</option>
+            <option value="AH50050U">AH50050U (240V, 400W, 3-Pin Connector)</option>
+            <option value="AH50050W">AH50050W (120V, 600W, 3-Pin Connector)</option>
+            <option value="AH50050Y">AH50050Y (240V, 600W, 3-Pin Connector)</option>
+        </select>
+    </div>
+
+    <div class="info-box">
+        <div class="info-row">
+            <strong>Termination Type:</strong> <span id="displayTerm">-</span>
+        </div>
+        <div class="info-row">
+            <strong>Voltage:</strong> <span id="displayVolts">-</span>
+        </div>
+        <div class="info-row">
+            <strong>Wattage:</strong> <span id="displayWatts">-</span>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>1/8" FPT or 3/8" MPT Fittings</label>
+        <div class="checkbox-grid">
+            <div class="checkbox-item">
+                <input type="checkbox" id="inletFitting" onchange="calculatePrice()" oninput="calculatePrice()">
+                <label for="inletFitting">Inlet Fitting</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="outletFitting" onchange="calculatePrice()" oninput="calculatePrice()">
+                <label for="outletFitting">Outlet Fitting</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="summary-card">
+        <h2>List Price</h2>
+        <div class="total-price" id="totalPrice">$0.00</div>
+    </div>
+
+    <div style="margin-top: 25px;">
+       
+        <table>
+            <thead>
+                <tr>
+                    <th>Quantity</th>
+                    <th style="text-align: right;">Unit Price</th>
+                </tr>
+            </thead>
+            <tbody id="qtyTableBody">
+                <!-- Dynamically populated -->
+            </tbody>
+        </table>
+    </div>
+
+    <div class="desc-box">
+        <h3>Description</h3>
+        <p id="descriptionBlurb" style="margin: 0; color: #4a5568; font-family: monospace;"></p>
+    </div>
+</div>
+
+</body>
+</html>

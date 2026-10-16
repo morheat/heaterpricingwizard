@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backer Marathon - Starflex Heater Pricing Calculator</title>
+    <script>
+        // Starflex Base Prices and Per-Inch Diameter adders from Backer Marathon Price Book
+        const starflexPricing = {
+            "3/4": { name: "3/4\"", base: 134.89, perInch: 15.46, idBase: 167.86, idPerInch: 19.34, hcBase: 167.86, hcPerInch: 20.97, tb: 26.96 },
+            "1-1/2": { name: "1-1/2\"", base: 140.58, perInch: 21.53, idBase: 175.03, idPerInch: 26.96, hcBase: 189.36, hcPerInch: 21.44, tb: 37.27 },
+            "2-1/2": { name: "2-1/2\"", base: 200.83, perInch: 25.79, idBase: 251.73, idPerInch: 32.42, hcBase: 272.55, hcPerInch: 35.16, tb: 44.43 },
+            "3": { name: "3\"", base: 200.83, perInch: 42.68, idBase: 251.73, idPerInch: 53.37, hcBase: 272.55, hcPerInch: 57.60, tb: 44.43 },
+            "4": { name: "4\"", base: 238.10, perInch: 53.08, idBase: 298.34, idPerInch: 66.39, hcBase: 322.75, hcPerInch: 71.71, tb: 44.43 }
+        };
+
+        const starflexAddons = {
+            options: {
+                none: 0,
+                hole: 24.68,
+                partial180_360: 88.95,
+                partial0_180: 88.95,
+                springClamps: 29.82,
+                lead16: 17.93,
+                lead16Braid: 20.10,
+                lead16Armor: 22.37
+            }
+        };
+
+        function calculateStarflexPrice() {
+            const widthField = document.getElementById('width');
+            const constructionField = document.getElementById('constructionType');
+            const diameterField = document.getElementById('diameter');
+            const optionField = document.getElementById('extraOptions');
+            const terminalBoxField = document.getElementById('includeTerminalBox');
+            const voltageField = document.getElementById('voltage');
+            const wattageField = document.getElementById('wattage');
+            const quantityField = document.getElementById('quantity');
+            const terminationField = document.getElementById('termination');
+
+            if (!widthField || !constructionField) return;
+
+            const widthKey = widthField.value;
+            const construction = constructionField.value;
+            const diameter = parseFloat(diameterField.value) || 6.0;
+            const option = optionField.value;
+            const hasTerminalBox = terminalBoxField.checked;
+            const voltage = voltageField.value.trim();
+            const wattage = wattageField.value.trim();
+            const quantity = parseInt(quantityField.value) || 1;
+            const termination = terminationField.value;
+
+            let profile = starflexPricing[widthKey] || starflexPricing["1-1/2"];
+            let baseCost = profile.base;
+            let perInchCost = profile.perInch;
+
+            // Handle Construction Types
+            if (construction === "idHeating") {
+                baseCost = profile.idBase;
+                perInchCost = profile.idPerInch;
+            } else if (construction === "heatCool") {
+                baseCost = profile.hcBase;
+                perInchCost = profile.hcPerInch;
+            }
+
+            // Core Calculation: Base + (Per Inch * Diameter)
+            let calculatedPrice = baseCost + (Math.max(0, diameter) * perInchCost);
+
+            // Large diameter adder if over 25 inches
+            if (diameter > 25) {
+                calculatedPrice += 82.06;
+            }
+
+            // Terminal Box Adder
+            if (hasTerminalBox) {
+                calculatedPrice += profile.tb;
+            }
+
+            // Extra Options Adder
+            if (option === "hole") {
+                calculatedPrice += starflexAddons.options.hole;
+            } else if (option === "partial180_360") {
+                calculatedPrice += 88.95;
+            } else if (option === "partial0_180") {
+                calculatedPrice = (calculatedPrice * 0.5) + 88.95;
+            } else if (option === "springClamps") {
+                calculatedPrice += starflexAddons.options.springClamps;
+            } else if (option === "lead16") {
+                calculatedPrice += starflexAddons.options.lead16;
+            } else if (option === "lead16Braid") {
+                calculatedPrice += starflexAddons.options.lead16Braid;
+            } else if (option === "lead16Armor") {
+                calculatedPrice += starflexAddons.options.lead16Armor;
+            }
+
+            // Quantity tiers based on Starflex pricing image ($150.27 for 1-1, $120.22 for 2-9, $90.16 for 10+)
+            // Multipliers: 1-1 (1.00), 2-9 (0.7999), 10+ (0.5999)
+            const tiers = [
+                { range: "1 - 1", mult: 1.0000 },
+                { range: "2 - 9", mult: 0.7999 },
+                { range: "10+", mult: 0.5999 }
+            ];
+
+            let activeUnit = calculatedPrice;
+            if (quantity >= 10) activeUnit *= 0.5999;
+            else if (quantity >= 2) activeUnit *= 0.7999;
+
+            const totalPriceElem = document.getElementById('totalPrice');
+            if (totalPriceElem) {
+                totalPriceElem.innerText = '$' + activeUnit.toFixed(2);
+            }
+
+            let tbody = document.getElementById('qtyTableBody');
+            tbody.innerHTML = '';
+            tiers.forEach(tier => {
+                let tierPrice = calculatedPrice * tier.mult;
+                let tr = document.createElement('tr');
+                tr.innerHTML = `<td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${tier.range}</td>` +
+                               `<td style="padding: 8px; border-bottom: 1px solid #e2e8f0; text-align: right;">$${tierPrice.toFixed(2)}</td>`;
+                tbody.appendChild(tr);
+            });
+
+            // Description Blurb formatting matching style: 6.00 in Diameter x 1 1/2 in Wide Starflex Standard Band Heater 240 Volts 90 Watts with Screw Terminals.
+            let widthName = profile.name;
+            let constName = construction === "idHeating" ? "ID Heating" : (construction === "heatCool" ? "Heat and Cool" : "Standard");
+            let descString = `${diameter.toFixed(2)} in Diameter x ${widthName} in Wide Starflex ${constName} Band Heater ${voltage} ${wattage} with ${termination}. (Qty: ${quantity})`;
+            document.getElementById('descriptionBlurb').innerText = descString;
+        }
+
+        window.onload = function() {
+            calculateStarflexPrice();
+        };
+    </script>
+    <style>
+        :root {
+            --primary-color: #1a365d;
+            --secondary-color: #2b6cb0;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --text-color: #2d3748;
+            --border-color: #e2e8f0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.5;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 5px;
+            font-size: 24px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        select, input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+            background-color: #fff;
+            box-sizing: border-box;
+        }
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 3px rgba(43, 108, 176, 0.1);
+        }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .checkbox-group input {
+            width: auto;
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .summary-card {
+            background-color: #ebf8ff;
+            border: 1px solid #bee3f8;
+            border-radius: 6px;
+            padding: 20px;
+            margin-top: 30px;
+            text-align: center;
+        }
+        .summary-card h2 {
+            margin: 0 0 10px 0;
+            color: var(--primary-color);
+            font-size: 18px;
+        }
+        .total-price {
+            font-size: 32px;
+            font-weight: bold;
+            color: #2b6cb0;
+        }
+        .desc-box {
+            background: #f7fafc;
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        .desc-box h3 {
+            margin: 0 0 5px 0;
+            color: var(--primary-color);
+            font-size: 15px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: #fff;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+        th {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 10px;
+            font-size: 14px;
+            text-align: left;
+        }
+        th:last-child {
+            text-align: right;
+        }
+    
+        .back-nav {
+            max-width: 800px;
+            margin: 0 auto 14px;
+        }
+        .back-nav a {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #2b6cb0;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .back-nav a:hover {
+            text-decoration: underline;
+        }
+</style>
+</head>
+<body>
+<div class="back-nav" data-back-nav="true"><a href="index.html">← Back to Other Heaters</a></div>
+
+
+<div class="container">
+    <h1>Starflex Price Calculator</h1>
+    
+    <div class="grid-2">
+        <div class="form-group">
+            <label for="width">Band Width</label>
+            <select id="width" onchange="calculateStarflexPrice()">
+                <option value="3/4">3/4" Width</option>
+                <option value="1-1/2" selected>1-1/2" Width</option>
+                <option value="2-1/2">2-1/2" Width</option>
+                <option value="3">3" Width</option>
+                <option value="4">4" Width</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="constructionType">Construction Type</label>
+            <select id="constructionType" onchange="calculateStarflexPrice()">
+                <option value="standard" selected>Standard Base</option>
+                <option value="idHeating">ID Heating Base</option>
+                <option value="heatCool">Heat and Cool Base</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <div class="form-group">
+            <label for="diameter">Inner Diameter (Inches)</label>
+            <input type="number" id="diameter" min="3.5" step="0.5" value="6.0" oninput="calculateStarflexPrice()" onchange="calculateStarflexPrice()">
+        </div>
+
+        <div class="form-group">
+            <label for="quantity">Quantity</label>
+            <input type="number" id="quantity" min="1" value="1" oninput="calculateStarflexPrice()" onchange="calculateStarflexPrice()">
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <div class="form-group">
+            <label for="voltage">Voltage</label>
+            <input type="text" id="voltage" value="240 Volts" oninput="calculateStarflexPrice()" onchange="calculateStarflexPrice()">
+        </div>
+
+        <div class="form-group">
+            <label for="wattage">Wattage</label>
+            <input type="text" id="wattage" value="90 Watts" oninput="calculateStarflexPrice()" onchange="calculateStarflexPrice()">
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <div class="form-group">
+            <label for="termination">Termination Type</label>
+            <input type="text" id="termination" value="Screw Terminals" oninput="calculateStarflexPrice()" onchange="calculateStarflexPrice()">
+        </div>
+
+        <div class="form-group">
+            <label for="extraOptions">Additional Options</label>
+            <select id="extraOptions" onchange="calculateStarflexPrice()">
+                <option value="none">None</option>
+                <option value="hole">Hole</option>
+                <option value="partial180_360">180-360 degree Partial Coverage</option>
+                <option value="partial0_180">0-180 degree Partial Coverage</option>
+                <option value="springClamps">Spring Loaded Clamps (Each)</option>
+                <option value="lead16">16 gage Leads (First foot)</option>
+                <option value="lead16Braid">16 gage Leads with SS Braid (First foot)</option>
+                <option value="lead16Armor">16 gage Leads with SS Armor (First foot)</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="checkbox-group">
+            <input type="checkbox" id="includeTerminalBox" onchange="calculateStarflexPrice()">
+            <label for="includeTerminalBox" style="margin-bottom:0; font-weight:normal;">Include Terminal Box</label>
+        </div>
+    </div>
+
+    <div class="summary-card">
+        <h2>List Price</h2>
+        <div class="total-price" id="totalPrice">$0.00</div>
+    </div>
+
+    <div style="margin-top: 25px;">
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Quantity</th>
+                    <th style="text-align: right;">Unit Price</th>
+                </tr>
+            </thead>
+            <tbody id="qtyTableBody">
+                <!-- Dynamically populated -->
+            </tbody>
+        </table>
+    </div>
+
+    <div class="desc-box">
+        <h3>Description</h3>
+        <p id="descriptionBlurb" style="margin: 0; color: #4a5568; font-family: monospace;"></p>
+    </div>
+</div>
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

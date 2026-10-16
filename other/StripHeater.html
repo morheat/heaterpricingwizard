@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mica Strip Heaters Pricing Calculator</title>
+    <script>
+        // Standard Construction Galvannealed Heaters Matrix
+        const standardGalvMatrix = {
+            "5": [39.29, 44.54, 49.79, 55.04, 60.29, 65.54],
+            "6": [40.34, 46.64, 52.94, 59.24, 65.54, 71.84],
+            "7": [41.39, 48.74, 56.09, 63.44, 70.79, 78.14],
+            "8": [42.44, 50.84, 59.24, 67.64, 76.04, 84.44],
+            "9": [43.49, 52.94, 62.39, 71.84, 81.29, 90.74],
+            "10": [44.54, 55.04, 65.54, 76.04, 86.54, 97.04],
+            "12": [46.64, 59.24, 71.84, 84.44, 97.04, 109.64],
+            "15": [49.79, 65.54, 81.29, 97.04, 112.79, 128.54],
+            "18": [52.94, 71.84, 90.74, 109.64, 128.54, 147.44],
+            "20": [55.04, 76.04, 97.04, 118.04, 139.04, 160.04],
+            "24": [59.24, 84.44, 109.64, 134.84, 160.04, 185.24],
+            "25": [60.29, 86.54, 112.79, 139.04, 165.29, 191.54],
+            "30": [65.54, 97.04, 128.54, 160.04, 191.54, 223.04]
+        };
+        const standardGalvAddInch = [1.05, 2.10, 3.15, 4.20, 5.25, 6.30];
+
+        // Buttcase Construction Galvannealed Heaters Matrix
+        const buttcaseMatrix = {
+            "5": [40.14, 46.24, 52.34, 58.44, 64.54, 70.64],
+            "6": [41.36, 48.68, 56.00, 63.32, 70.64, 77.96],
+            "7": [42.58, 51.12, 59.66, 68.20, 76.74, 85.28],
+            "8": [43.80, 53.56, 63.32, 73.08, 82.84, 92.60],
+            "9": [45.02, 56.00, 66.98, 77.96, 88.94, 99.92],
+            "10": [46.24, 58.44, 70.64, 82.84, 95.04, 107.24],
+            "12": [48.68, 63.32, 77.96, 92.60, 107.24, 121.88],
+            "15": [52.34, 70.64, 88.94, 107.24, 125.54, 143.84],
+            "18": [56.00, 77.96, 99.92, 121.88, 143.84, 165.80],
+            "20": [58.44, 82.84, 107.24, 131.64, 156.04, 180.44],
+            "24": [63.32, 92.60, 121.88, 151.16, 180.44, 209.72],
+            "25": [64.54, 95.04, 125.54, 156.04, 186.54, 217.04],
+            "30": [70.64, 107.24, 143.84, 180.44, 217.04, 253.64]
+        };
+        const buttcaseAddInch = [1.22, 2.44, 3.66, 4.88, 6.10, 7.32];
+
+        // Standard Construction Stainless Steel Heaters Matrix
+        const standardSSMatrix = {
+            "5": [41.59, 49.14, 56.69, 64.24, 71.79, 79.34],
+            "6": [43.10, 52.16, 61.22, 70.28, 79.34, 88.40],
+            "7": [44.61, 55.18, 65.75, 76.32, 86.89, 97.46],
+            "8": [46.12, 58.20, 70.28, 82.36, 94.44, 106.52],
+            "9": [47.63, 61.22, 74.81, 88.40, 101.99, 115.58],
+            "10": [49.14, 64.24, 79.34, 94.44, 109.54, 124.64],
+            "12": [52.16, 70.28, 88.40, 106.52, 124.64, 142.76],
+            "15": [56.69, 79.34, 101.99, 124.64, 147.29, 169.94],
+            "18": [61.22, 88.40, 115.58, 142.76, 169.94, 197.12],
+            "20": [64.24, 94.44, 124.64, 154.84, 185.04, 215.24],
+            "24": [70.28, 106.52, 142.76, 179.00, 215.24, 251.48],
+            "25": [71.79, 109.54, 147.29, 185.04, 222.79, 260.54],
+            "30": [79.34, 124.64, 169.94, 215.24, 260.54, 305.84]
+        };
+        const standardSSAddInch = [1.51, 3.02, 4.53, 6.04, 7.55, 9.06];
+
+        const widthOptions = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+        function getBasePrice(construction, length, widthIdx) {
+            let matrix, addInchArr;
+            if (construction === "buttcase") {
+                matrix = buttcaseMatrix;
+                addInchArr = buttcaseAddInch;
+            } else if (construction === "stainless") {
+                matrix = standardSSMatrix;
+                addInchArr = standardSSAddInch;
+            } else {
+                matrix = standardGalvMatrix;
+                addInchArr = standardGalvAddInch;
+            }
+
+            let lenKey = length.toString();
+            if (matrix[lenKey]) {
+                return matrix[lenKey][widthIdx] !== undefined ? matrix[lenKey][widthIdx] : matrix[lenKey][matrix[lenKey].length - 1];
+            } else if (length > 30) {
+                let diff = length - 30;
+                let maxRow = matrix["30"];
+                let val = maxRow[widthIdx] !== undefined ? maxRow[widthIdx] : maxRow[maxRow.length - 1];
+                let addVal = addInchArr[widthIdx] !== undefined ? addInchArr[widthIdx] : addInchArr[addInchArr.length - 1];
+                return val + (diff * addVal);
+            } else {
+                let minRow = matrix["5"];
+                return minRow[widthIdx] !== undefined ? minRow[widthIdx] : minRow[minRow.length - 1];
+            }
+        }
+
+        function calculatePrice() {
+            const construction = document.getElementById('construction').value;
+            const length = parseInt(document.getElementById('length').value) || 9;
+            const widthVal = parseInt(document.getElementById('widthVal').value) || 9;
+            const voltage = document.getElementById('voltage').value.trim();
+            const wattage = document.getElementById('wattage').value.trim();
+            
+            let widthIdx = Math.min(Math.max(widthVal - 1, 0), 5);
+            let basePrice = getBasePrice(construction, length, widthIdx);
+
+            const leadType = document.getElementById('leadType').value;
+            const leadLength = parseInt(document.getElementById('leadLength').value) || 10;
+            let leadCost = 0;
+            let dualInches = Math.max(1, Math.ceil(leadLength / 2));
+
+            if (leadType === "22ga") leadCost = dualInches * 0.54;
+            else if (leadType === "18ga") leadCost = dualInches * 0.72;
+            else if (leadType === "16ga") leadCost = dualInches * 0.90;
+
+            const leadProtection = document.getElementById('leadProtection').value;
+            let protectionCost = 0;
+            if (leadProtection === "springGuard") protectionCost = 13.46;
+            else if (leadProtection === "braid") protectionCost = 4.70 + (leadLength * 0.55);
+            else if (leadProtection === "conduit") protectionCost = 4.70 + (leadLength * 0.56);
+
+            const termination = document.getElementById('termination').value;
+            let termCost = 0;
+            if (termination === "terminalBox") termCost = 41.50;
+            else if (termination === "customTerminalBox") termCost = 64.90;
+            else if (termination === "euroPlug") termCost = 56.93;
+            else if (termination === "buttonTerminals") termCost = 12.38;
+            else if (termination === "rtAngleCap") termCost = 33.31;
+            else if (termination === "groundTerminal") termCost = 23.61;
+            else if (termination === "groundWireConst") termCost = 14.05 + (leadLength * 0.27);
+
+            let optionsCost = 0;
+            const extraParam = parseFloat(document.getElementById('extraParam').value) || 1;
+
+            if (document.getElementById('optDualVoltage').checked) optionsCost += 16.50 + (leadLength * 0.54);
+            if (document.getElementById('optThreePhase').checked) optionsCost += 19.32 + (leadLength * 0.29);
+            if (document.getElementById('optDualZone').checked) optionsCost += 29.69 + (leadLength * 0.54);
+            if (document.getElementById('optThreeZone').checked) optionsCost += 59.31 + (leadLength * 1.08);
+            if (document.getElementById('optTC').checked) optionsCost += 27.15 + (leadLength * 0.61);
+            if (document.getElementById('optBayonet').checked) optionsCost += 28.38;
+            if (document.getElementById('optCeramicCovers').checked) optionsCost += 5.80;
+            if (document.getElementById('optRoundedCorners').checked) optionsCost += 28.46;
+            if (document.getElementById('optPlateInsert').checked) optionsCost += 122.91 + (extraParam * 8.40);
+
+            let holesCount = 0;
+            if (document.getElementById('chkHoleSmall').checked) { optionsCost += 25.42; holesCount++; }
+            if (document.getElementById('chkHoleLarge').checked) { optionsCost += 39.71; holesCount++; }
+            if (document.getElementById('chkSlotSmall').checked) { optionsCost += 25.42; holesCount++; }
+            if (document.getElementById('chkSlotLarge').checked) { optionsCost += 39.71; holesCount++; }
+
+            let baseUnitPrice = basePrice + leadCost + protectionCost + termCost + optionsCost;
+
+            const tiers = [
+                { range: "1 - 1", mult: 1.0000 },
+                { range: "2 - 4", mult: 0.8125 },
+                { range: "5 - 9", mult: 0.6250 },
+                { range: "10 - 24", mult: 0.5000 },
+                { range: "25 - 49", mult: 0.3750 },
+                { range: "50 - 99", mult: 0.3500 },
+                { range: "100+", mult: 0.3375 }
+            ];
+
+            document.getElementById('totalPrice').innerText = '$' + baseUnitPrice.toFixed(2);
+
+            let tbody = document.getElementById('qtyTableBody');
+            tbody.innerHTML = '';
+            tiers.forEach(tier => {
+                let tierPrice = baseUnitPrice * tier.mult;
+                let tr = document.createElement('tr');
+                tr.innerHTML = `<td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${tier.range}</td>` +
+                               `<td style="padding: 8px; border-bottom: 1px solid #e2e8f0; text-align: right;">$${tierPrice.toFixed(2)}</td>`;
+                tbody.appendChild(tr);
+            });
+
+            let matText = construction === "stainless" ? "Stainless Steel Strip Heater" : "Electro-Galvanized Steel Strip Heater";
+            let circuitText = document.getElementById('optThreePhase').checked ? "Three Phase Circuit" : (document.getElementById('optDualZone').checked ? "Dual Zone Circuit" : "Standard Single Circuit");
+            let termText = leadType !== "none" ? `${leadType} Leads termination` : "Post Terminals termination";
+            let holeDesc = holesCount > 0 ? `With ${holesCount} additional holes or slots.` : "With no additional holes or slots.";
+            let descString = `${parseFloat(length).toFixed(2)} in long x ${parseFloat(widthVal).toFixed(2)} in wide ${matText}, ${voltage} ${wattage} ${circuitText}, and a ${termText}. ${holeDesc}`;
+            document.getElementById('descriptionBlurb').innerText = descString;
+        }
+
+        window.onload = function() {
+            calculatePrice();
+        }
+    </script>
+    <style>
+        :root {
+            --primary-color: #1a365d;
+            --secondary-color: #2b6cb0;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --text-color: #2d3748;
+            --border-color: #e2e8f0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.5;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 5px;
+            font-size: 24px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        select, input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+            background-color: #fff;
+            box-sizing: border-box;
+        }
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 3px rgba(43, 108, 176, 0.1);
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .checkbox-item input {
+            width: auto;
+        }
+        .checkbox-item label {
+            margin-bottom: 0;
+            font-weight: normal;
+            font-size: 13px;
+        }
+        .summary-card {
+            background-color: #ebf8ff;
+            border: 1px solid #bee3f8;
+            border-radius: 6px;
+            padding: 20px;
+            margin-top: 30px;
+            text-align: center;
+        }
+        .summary-card h2 {
+            margin: 0 0 10px 0;
+            color: var(--primary-color);
+            font-size: 18px;
+        }
+        .total-price {
+            font-size: 32px;
+            font-weight: bold;
+            color: #2b6cb0;
+        }
+        .desc-box {
+            background: #f7fafc;
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        .desc-box h3 {
+            margin: 0 0 5px 0;
+            color: var(--primary-color);
+            font-size: 15px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: #fff;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+        th {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 10px;
+            font-size: 14px;
+            text-align: left;
+        }
+        th:last-child {
+            text-align: right;
+        }
+    
+        .back-nav {
+            max-width: 900px;
+            margin: 0 auto 14px;
+        }
+        .back-nav a {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #2b6cb0;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .back-nav a:hover {
+            text-decoration: underline;
+        }
+</style>
+</head>
+<body>
+<div class="back-nav" data-back-nav="true"><a href="index.html">← Back to Other Heaters</a></div>
+
+
+<div class="container">
+    <h1>Mica Strip Heaters Pricing Calculator</h1>
+
+    <div class="grid-2">
+        <div class="form-group">
+            <label for="construction">Construction Type</label>
+            <select id="construction" onchange="calculatePrice()" oninput="calculatePrice()">
+                <option value="standardGalv" selected>Standard Construction Galvannealed</option>
+                <option value="buttcase">Buttcase Construction Galvannealed</option>
+                <option value="stainless">Standard Construction Stainless Steel</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="widthVal">Width (Inches)</label>
+            <input type="number" id="widthVal" min="1" max="100" value="9" oninput="calculatePrice()" onchange="calculatePrice()">
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <div class="form-group">
+            <label for="length">Length (Inches)</label>
+            <input type="number" id="length" min="1" max="100" value="9" oninput="calculatePrice()" onchange="calculatePrice()">
+        </div>
+
+        <div class="form-group">
+            <label for="voltage">Voltage</label>
+            <input type="text" id="voltage" value="240V" oninput="calculatePrice()" onchange="calculatePrice()">
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <div class="form-group">
+            <label for="wattage">Wattage</label>
+            <input type="text" id="wattage" value="90W" oninput="calculatePrice()" onchange="calculatePrice()">
+        </div>
+
+        <div class="form-group">
+            <label for="leadType">Leads (Wire Gauge)</label>
+            <select id="leadType" onchange="calculatePrice()" oninput="calculatePrice()">
+                <option value="none" selected>None (Post Terminals)</option>
+                <option value="22ga">22 ga (per dual inch)</option>
+                <option value="18ga">18 ga (per dual inch)</option>
+                <option value="16ga">16 ga (per dual inch)</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <div class="form-group">
+            <label for="leadLength">Total Lead Length (Inches)</label>
+            <input type="number" id="leadLength" min="0" max="120" value="10" oninput="calculatePrice()" onchange="calculatePrice()">
+        </div>
+
+        <div class="form-group">
+            <label for="leadProtection">Lead Protection</label>
+            <select id="leadProtection" onchange="calculatePrice()" oninput="calculatePrice()">
+                <option value="none" selected>None</option>
+                <option value="springGuard">Spring Guard</option>
+                <option value="braid">Braid Construction</option>
+                <option value="conduit">SS Conduit Construction</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <div class="form-group">
+            <label for="termination">Terminations</label>
+            <select id="termination" onchange="calculatePrice()" oninput="calculatePrice()">
+                <option value="none" selected>None / Standard Post</option>
+                <option value="terminalBox">Terminal Box</option>
+                <option value="customTerminalBox">Custom Terminal Box</option>
+                <option value="euroPlug">Euro Plug</option>
+                <option value="buttonTerminals">Button Terminals</option>
+                <option value="rtAngleCap">Rt. Angle Cap Exit</option>
+                <option value="groundTerminal">Ground Terminal</option>
+                <option value="groundWireConst">Ground Wire Construction</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="extraParam">Plate Insert Linear Inches (If selected)</label>
+            <input type="number" id="extraParam" min="1" value="1" oninput="calculatePrice()" onchange="calculatePrice()">
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>Options, Configurations & Holes/Slots</label>
+        <div class="checkbox-grid">
+            <div class="checkbox-item">
+                <input type="checkbox" id="optDualVoltage" onchange="calculatePrice()" oninput="calculatePrice()">
+                <label for="optDualVoltage">Dual Voltage Construction</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="optThreePhase" onchange="calculatePrice()" oninput="calculatePrice()">
+                <label for="optThreePhase">Three Phase Construction</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="optDualZone" onchange="calculatePrice()" oninput="calculatePrice()">
+                <label for="optDualZone">Dual Zone Construction</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="optThreeZone" onchange="calculatePrice()" oninput="calculatePrice()">
+                <label for="optThreeZone">Three Zone Construction</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="optTC" onchange="calculatePrice()" oninput="calculatePrice()">
+                <label for="optTC">Thermocouple</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="optBayonet" onchange="calculatePrice()" oninput="calculatePrice()">
+                <label for="optBayonet">Bayonet Adapter w/ hole</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="optCeramicCovers" onchange="calculatePrice()" oninput="calculatePrice()">
+                <label for="optCeramicCovers">Ceramic Terminal Covers</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="optRoundedCorners" onchange="calculatePrice()" oninput="calculatePrice()">
+                <label for="optRoundedCorners">Rounded Corners</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="optPlateInsert" onchange="calculatePrice()" oninput="calculatePrice()">
+                <label for="optPlateInsert">Steel Plate Insert Base</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="chkHoleSmall" onchange="calculatePrice()" oninput="calculatePrice()">
+                <label for="chkHoleSmall">Hole &lt; 1" diameter</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="chkHoleLarge" onchange="calculatePrice()" oninput="calculatePrice()">
+                <label for="chkHoleLarge">Hole &gt; 1" diameter</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="chkSlotSmall" onchange="calculatePrice()" oninput="calculatePrice()">
+                <label for="chkSlotSmall">Slot &lt; 1/2" wide</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="chkSlotLarge" onchange="calculatePrice()" oninput="calculatePrice()">
+                <label for="chkSlotLarge">Slot &gt; 1/2" wide</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="summary-card">
+        <h2>List Price</h2>
+        <div class="total-price" id="totalPrice">$0.00</div>
+    </div>
+
+    <div style="margin-top: 25px;">
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Quantity</th>
+                    <th style="text-align: right;">Unit Price</th>
+                </tr>
+            </thead>
+            <tbody id="qtyTableBody">
+                <!-- Dynamically populated -->
+            </tbody>
+        </table>
+    </div>
+
+    <div class="desc-box">
+        <h3>Description</h3>
+        <p id="descriptionBlurb" style="margin: 0; color: #4a5568; font-family: monospace;"></p>
+    </div>
+</div>
+
+</body>
+</html>

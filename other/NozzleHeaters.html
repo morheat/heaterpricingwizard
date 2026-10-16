@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mica Nozzle Heaters Pricing Calculator</title>
+    <script>
+        // Exact Mica Nozzle Heaters Table Data from Source
+        const nozzleTableData = [
+            { diameter: "1", width: 1, watts: 100, type: "S", price: 30.10 },
+            { diameter: "1", width: 1, watts: 125, type: "S", price: 30.10 },
+            { diameter: "1", width: 1, watts: 125, type: "B", price: 35.60 },
+            { diameter: "1", width: 1.5, watts: 150, type: "S", price: 30.10 },
+            { diameter: "1", width: 2, watts: 200, type: "S", price: 30.67 },
+            { diameter: "1", width: 3, watts: 300, type: "S", price: 33.57 },
+            { diameter: "1", width: 4, watts: 400, type: "S", price: 34.44 },
+
+            { diameter: "1.5", width: 1, watts: 150, type: "S", price: 30.10 },
+            { diameter: "1.5", width: 1.5, watts: 250, type: "S", price: 30.10 },
+            { diameter: "1.5", width: 1.5, watts: 275, type: "S", price: 30.10 },
+            { diameter: "1.5", width: 1.5, watts: 275, type: "B", price: 35.60 },
+            { diameter: "1.5", width: 1.5, watts: 300, type: "S", price: 30.10 },
+            { diameter: "1.5", width: 1.5, watts: 300, type: "B", price: 35.60 },
+            { diameter: "1.5", width: 2, watts: 300, type: "S", price: 33.57 },
+            { diameter: "1.5", width: 2.5, watts: 400, type: "S", price: 34.07 },
+            { diameter: "1.5", width: 3, watts: 450, type: "S", price: 35.59 },
+            { diameter: "1.5", width: 3, watts: 450, type: "B", price: 41.09 },
+            { diameter: "1.5", width: 4, watts: 550, type: "S", price: 40.01 },
+            { diameter: "1.5", width: 5, watts: 700, type: "S", price: 42.93 },
+            { diameter: "1.5", width: 6, watts: 900, type: "S", price: 46.90 },
+
+            { diameter: "1.75", width: 1.5, watts: 300, type: "S", price: 33.57 },
+            { diameter: "1.75", width: 2, watts: 350, type: "S", price: 34.07 },
+            { diameter: "1.75", width: 3, watts: 500, type: "S", price: 38.13 },
+
+            { diameter: "2", width: 1, watts: 200, type: "S", price: 30.10 },
+            { diameter: "2", width: 1.5, watts: 300, type: "S", price: 33.57 },
+            { diameter: "2", width: 2, watts: 400, type: "S", price: 34.07 },
+            { diameter: "2", width: 2.5, watts: 500, type: "S", price: 35.59 },
+            { diameter: "2", width: 3, watts: 600, type: "S", price: 38.86 },
+
+            { diameter: "2.5", width: 1, watts: 300, type: "S", price: 32.70 },
+            { diameter: "2.5", width: 1.5, watts: 350, type: "S", price: 32.70 },
+            { diameter: "2.5", width: 2, watts: 500, type: "S", price: 34.07 },
+            { diameter: "2.5", width: 3, watts: 700, type: "S", price: 37.50 },
+
+            { diameter: "3", width: 1, watts: 300, type: "S", price: 33.57 },
+            { diameter: "3", width: 1.5, watts: 400, type: "S", price: 34.07 },
+            { diameter: "3", width: 2, watts: 600, type: "S", price: 36.83 },
+            { diameter: "3", width: 3, watts: 1000, type: "S", price: 41.55 }
+        ];
+
+        function updateAvailableOptions() {
+            const diameter = document.getElementById('diameter').value;
+            const widthSelect = document.getElementById('width');
+            
+            const matchingRows = nozzleTableData.filter(row => row.diameter === diameter);
+
+            const uniqueWidths = [...new Set(matchingRows.map(row => row.width))];
+            widthSelect.innerHTML = '';
+            uniqueWidths.forEach(w => {
+                let opt = document.createElement('option');
+                opt.value = w;
+                opt.text = w + '"';
+                if (w === 1.5) opt.selected = true;
+                widthSelect.appendChild(opt);
+            });
+
+            updateWattsAndTypes();
+        }
+
+        function updateWattsAndTypes() {
+            const diameter = document.getElementById('diameter').value;
+            const width = parseFloat(document.getElementById('width').value);
+            const wattsSelect = document.getElementById('watts');
+
+            const matchingRows = nozzleTableData.filter(row => row.diameter === diameter && row.width === width);
+
+            const uniqueWatts = [...new Set(matchingRows.map(row => row.watts))];
+            wattsSelect.innerHTML = '';
+            uniqueWatts.forEach(wt => {
+                let opt = document.createElement('option');
+                opt.value = wt;
+                opt.text = wt + ' W';
+                if (wt === 90) opt.selected = true;
+                wattsSelect.appendChild(opt);
+            });
+
+            updateTypes();
+        }
+
+        function updateTypes() {
+            const diameter = document.getElementById('diameter').value;
+            const width = parseFloat(document.getElementById('width').value);
+            const watts = parseInt(document.getElementById('watts').value) || 90;
+            const typeSelect = document.getElementById('type');
+
+            const matchingRows = nozzleTableData.filter(row => row.diameter === diameter && row.width === width && row.watts === watts);
+
+            typeSelect.innerHTML = '';
+            if (matchingRows.length > 0) {
+                matchingRows.forEach(row => {
+                    let opt = document.createElement('option');
+                    opt.value = row.type;
+                    opt.text = row.type === "S" ? "S (Post Terminals)" : "B (Barrel Nuts)";
+                    typeSelect.appendChild(opt);
+                });
+            } else {
+                let opt = document.createElement('option');
+                opt.value = "S";
+                opt.text = "S (Post Terminals)";
+                typeSelect.appendChild(opt);
+            }
+
+            calculatePrice();
+        }
+
+        function calculatePrice() {
+            const diameter = document.getElementById('diameter').value;
+            const width = parseFloat(document.getElementById('width').value);
+            const watts = parseInt(document.getElementById('watts').value) || 90;
+            const type = document.getElementById('type').value;
+            const voltage = document.getElementById('voltage').value;
+            const leadLength = parseInt(document.getElementById('leadLength').value) || 9;
+            const ssBraidLength = parseInt(document.getElementById('ssBraidLength').value) || 0;
+            const wedgelock = document.getElementById('wedgelock').checked;
+
+            let baseRow = nozzleTableData.find(row => row.diameter === diameter && row.width === width && row.watts === watts && row.type === type);
+            let basePrice = baseRow ? baseRow.price : 13.20;
+
+            let leadAdder = 0;
+            if (leadLength > 10) {
+                leadAdder = (leadLength - 10) * 0.54;
+            }
+
+            let braidAdder = ssBraidLength * 0.55;
+            let wedgelockAdder = wedgelock ? 14.86 : 0;
+
+            let baseUnitPrice = basePrice + leadAdder + braidAdder + wedgelockAdder;
+
+            const tiers = [
+                { range: "1 - 1", mult: 1.0000 },
+                { range: "2 - 4", mult: 1.0000 },
+                { range: "5 - 9", mult: 1.0000 },
+                { range: "10 - 24", mult: 1.0000 },
+                { range: "25 - 49", mult: 0.7500 },
+                { range: "50 - 99", mult: 0.7000 },
+                { range: "100+", mult: 0.6750 }
+            ];
+
+            document.getElementById('totalPrice').innerText = '$' + baseUnitPrice.toFixed(2);
+
+            let tbody = document.getElementById('qtyTableBody');
+            tbody.innerHTML = '';
+            tiers.forEach(tier => {
+                let tierPrice = baseUnitPrice * tier.mult;
+                let tr = document.createElement('tr');
+                tr.innerHTML = `<td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${tier.range}</td>` +
+                               `<td style="padding: 8px; border-bottom: 1px solid #e2e8f0; text-align: right;">$${tierPrice.toFixed(2)}</td>`;
+                tbody.appendChild(tr);
+            });
+
+            let diaText = diameter === "1.5" ? "1 1/2" : (diameter === "1.75" ? "1 3/4" : (diameter === "2.5" ? "2 1/2" : diameter));
+            let widthText = width === 1.5 ? "1 1/2" : width;
+            let descString = `${diaText} in diameter x ${widthText} in wide ${voltage} ${watts}W Nozzle Heater with ${leadLength} in 22 ga 550C Hi-Temp leads and a Standard Clamping Strap.`;
+            document.getElementById('descriptionBlurb').innerText = descString;
+        }
+
+        window.onload = function() {
+            updateAvailableOptions();
+        }
+    </script>
+    <style>
+        :root {
+            --primary-color: #1a365d;
+            --secondary-color: #2b6cb0;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --text-color: #2d3748;
+            --border-color: #e2e8f0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.5;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 850px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 5px;
+            font-size: 24px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        select, input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+            background-color: #fff;
+            box-sizing: border-box;
+        }
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 3px rgba(43, 108, 176, 0.1);
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #f8fafc;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+        .checkbox-item input {
+            width: auto;
+        }
+        .checkbox-item label {
+            margin-bottom: 0;
+            font-weight: normal;
+        }
+        .summary-card {
+            background-color: #ebf8ff;
+            border: 1px solid #bee3f8;
+            border-radius: 6px;
+            padding: 20px;
+            margin-top: 30px;
+            text-align: center;
+        }
+        .summary-card h2 {
+            margin: 0 0 10px 0;
+            color: var(--primary-color);
+            font-size: 18px;
+        }
+        .total-price {
+            font-size: 32px;
+            font-weight: bold;
+            color: #2b6cb0;
+        }
+        .desc-box {
+            background: #f7fafc;
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        .desc-box h3 {
+            margin: 0 0 5px 0;
+            color: var(--primary-color);
+            font-size: 15px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: #fff;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+        th {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 10px;
+            font-size: 14px;
+            text-align: left;
+        }
+        th:last-child {
+            text-align: right;
+        }
+        .note {
+            font-size: 12px;
+            color: #718096;
+            margin-top: 5px;
+        }
+    
+        .back-nav {
+            max-width: 850px;
+            margin: 0 auto 14px;
+        }
+        .back-nav a {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #2b6cb0;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .back-nav a:hover {
+            text-decoration: underline;
+        }
+</style>
+</head>
+<body>
+<div class="back-nav" data-back-nav="true"><a href="index.html">← Back to Other Heaters</a></div>
+
+
+<div class="container">
+    <h1>Mica Nozzle Heaters Pricing Calculator</h1>
+
+    <div class="grid-2">
+        <div class="form-group">
+            <label for="diameter">Diameter (Inches)</label>
+            <select id="diameter" onchange="updateAvailableOptions()" oninput="updateAvailableOptions()">
+                <option value="1">1"</option>
+                <option value="1.5" selected>1.5"</option>
+                <option value="1.75">1.75"</option>
+                <option value="2">2"</option>
+                <option value="2.5">2.5"</option>
+                <option value="3">3"</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="width">Width (Inches)</label>
+            <select id="width" onchange="updateWattsAndTypes()" oninput="updateWattsAndTypes()">
+                <!-- Populated dynamically -->
+            </select>
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <div class="form-group">
+            <label for="watts">Wattage (Watts)</label>
+            <select id="watts" onchange="updateTypes()" oninput="updateTypes()">
+                <!-- Populated dynamically -->
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="type">Type</label>
+            <select id="type" onchange="calculatePrice()" oninput="calculatePrice()">
+                <!-- Populated dynamically -->
+            </select>
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <div class="form-group">
+            <label for="voltage">Voltage Option</label>
+            <select id="voltage" onchange="calculatePrice()" oninput="calculatePrice()">
+                <option value="120V">120V</option>
+                <option value="240V" selected>240V</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="leadLength">Total Lead Length (Inches)</label>
+            <input type="number" id="leadLength" min="1" value="9" oninput="calculatePrice()" onchange="calculatePrice()">
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <div class="form-group">
+            <label for="ssBraidLength">SS Braid Length (Inches)</label>
+            <input type="number" id="ssBraidLength" min="0" value="0" oninput="calculatePrice()" onchange="calculatePrice()">
+            <span class="note">SS braid over leads adds $0.55 per inch.</span>
+        </div>
+
+        <div class="form-group">
+            <label>Construction Upgrades</label>
+            <div class="checkbox-item">
+                <input type="checkbox" id="wedgelock" onchange="calculatePrice()" oninput="calculatePrice()">
+                <label for="wedgelock">Wedgelock Construction (adds $14.86)</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="summary-card">
+        <h2>List Price</h2>
+        <div class="total-price" id="totalPrice">$0.00</div>
+    </div>
+
+    <div style="margin-top: 25px;">
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Quantity</th>
+                    <th style="text-align: right;">Unit Price</th>
+                </tr>
+            </thead>
+            <tbody id="qtyTableBody">
+                <!-- Dynamically populated -->
+            </tbody>
+        </table>
+    </div>
+
+    <div class="desc-box">
+        <h3>Description</h3>
+        <p id="descriptionBlurb" style="margin: 0; color: #4a5568; font-family: monospace;"></p>
+    </div>
+</div>
+
+</body>
+</html>

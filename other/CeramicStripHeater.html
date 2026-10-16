@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ceramic Strip Heaters Pricing Calculator</title>
+    <script>
+        // Ceramic Strip Heaters Matrix (Lengths 6 to 36)
+        const ceramicMatrix = {
+            "6": [108.41, 99.71],
+            "7": [112.50, 102.35],
+            "8": [116.59, 104.99],
+            "9": [120.68, 107.63],
+            "10": [124.77, 110.27],
+            "11": [128.86, 112.91],
+            "12": [132.95, 115.55],
+            "13": [137.04, 118.19],
+            "14": [141.13, 120.83],
+            "15": [145.22, 123.47],
+            "16": [149.31, 126.11],
+            "17": [153.40, 128.75],
+            "18": [157.49, 131.39],
+            "19": [161.58, 134.03],
+            "20": [165.67, 136.67],
+            "21": [169.76, 139.31],
+            "22": [173.85, 141.95],
+            "23": [177.94, 144.59],
+            "24": [182.03, 147.23],
+            "25": [186.12, 149.87],
+            "26": [190.21, 152.51],
+            "27": [194.30, 155.15],
+            "28": [198.39, 157.79],
+            "29": [202.48, 160.43],
+            "30": [206.57, 163.07],
+            "31": [210.66, 165.71],
+            "32": [214.75, 168.35],
+            "33": [218.84, 170.99],
+            "34": [222.93, 173.63],
+            "35": [227.02, 176.27],
+            "36": [231.11, 178.91]
+        };
+
+        const addlInchRates = [4.09, 2.64];
+
+        function calculatePrice() {
+            const lengthElem = document.getElementById('length');
+            const sheathIndexElem = document.getElementById('sheathIndex');
+            if (!lengthElem || !sheathIndexElem) return;
+
+            const length = parseInt(lengthElem.value) || 6;
+            const sheathIndex = parseInt(sheathIndexElem.value);
+            const voltage = document.getElementById('voltage') ? document.getElementById('voltage').value.trim() : '240V';
+            const wattage = document.getElementById('wattage') ? document.getElementById('wattage').value.trim() : '90W';
+            
+            let basePrice = 0;
+            let lenKey = length.toString();
+
+            if (ceramicMatrix[lenKey]) {
+                basePrice = ceramicMatrix[lenKey][sheathIndex];
+            } else if (length > 36) {
+                let diff = length - 36;
+                basePrice = ceramicMatrix["36"][sheathIndex] + (diff * addlInchRates[sheathIndex]);
+            } else {
+                basePrice = ceramicMatrix["6"][sheathIndex];
+            }
+
+            // Additional Leads cost
+            const leadTypeElem = document.getElementById('leadType');
+            const leadType = leadTypeElem ? leadTypeElem.value : 'none';
+            const leadLengthElem = document.getElementById('leadLength');
+            const leadLength = leadLengthElem ? parseInt(leadLengthElem.value) || 10 : 10;
+            let leadCost = 0;
+            let dualInches = Math.max(1, Math.ceil(leadLength / 2));
+
+            if (leadType === "22ga") leadCost = dualInches * 0.54;
+            else if (leadType === "18ga") leadCost = dualInches * 0.72;
+            else if (leadType === "16ga") leadCost = dualInches * 0.90;
+
+            // Lead Protection
+            const leadProtectionElem = document.getElementById('leadProtection');
+            const leadProtection = leadProtectionElem ? leadProtectionElem.value : 'none';
+            let protectionCost = 0;
+            const braidConduitLengthElem = document.getElementById('braidConduitLength');
+            const braidConduitLength = braidConduitLengthElem ? parseInt(braidConduitLengthElem.value) || 0 : 0;
+
+            if (leadProtection === "sl4Top") {
+                protectionCost = 11.59;
+            } else if (leadProtection === "straightBraid") {
+                protectionCost = 4.67 + (braidConduitLength * 0.55);
+            } else if (leadProtection === "rightAngleBraid") {
+                protectionCost = 23.38;
+            } else if (leadProtection === "ssConduit") {
+                protectionCost = 4.67 + (braidConduitLength * 0.55);
+            } else if (leadProtection === "rightAngleConduit") {
+                protectionCost = 23.38;
+            }
+
+            // Other Options
+            let optionsCost = 0;
+            if (document.getElementById('optCeramicCovers') && document.getElementById('optCeramicCovers').checked) optionsCost += 5.73;
+            if (document.getElementById('optDistributedWattage') && document.getElementById('optDistributedWattage').checked) optionsCost += 20.59;
+
+            let baseUnitPrice = basePrice + leadCost + protectionCost + optionsCost;
+
+            // Quantity tiers breakdown based on standard multipliers
+            const tiers = [
+                { range: "1 - 1", mult: 1.0000 },
+                { range: "2 - 4", mult: 0.8125 },
+                { range: "5 - 9", mult: 0.6250 },
+                { range: "10 - 24", mult: 0.5000 },
+                { range: "25 - 49", mult: 0.3750 },
+                { range: "50 - 99", mult: 0.3500 },
+                { range: "100+", mult: 0.3375 }
+            ];
+
+            const totalPriceElem = document.getElementById('totalPrice');
+            if (totalPriceElem) totalPriceElem.innerText = '$' + baseUnitPrice.toFixed(2);
+
+            let tbody = document.getElementById('qtyTableBody');
+            if (tbody) {
+                tbody.innerHTML = '';
+                tiers.forEach(tier => {
+                    let tierPrice = baseUnitPrice * tier.mult;
+                    let tr = document.createElement('tr');
+                    tr.innerHTML = `<td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${tier.range}</td>` +
+                                   `<td style="padding: 8px; border-bottom: 1px solid #e2e8f0; text-align: right;">$${tierPrice.toFixed(2)}</td>`;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            let descString = `Ceramic Strip Heater, ${voltage} ${wattage}, Length: ${length} in, Sheath Column: ${sheathIndex}.`;
+            let descElem = document.getElementById('descriptionBlurb');
+            if (descElem) descElem.innerText = descString;
+        }
+
+        window.onload = function() {
+            calculatePrice();
+        }
+    </script>
+    <style>
+        :root {
+            --primary-color: #1a365d;
+            --secondary-color: #2b6cb0;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --text-color: #2d3748;
+            --border-color: #e2e8f0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.5;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 5px;
+            font-size: 24px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #718096;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        select, input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+            background-color: #fff;
+            box-sizing: border-box;
+        }
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 3px rgba(43, 108, 176, 0.1);
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .checkbox-item input {
+            width: auto;
+        }
+        .checkbox-item label {
+            margin-bottom: 0;
+            font-weight: normal;
+            font-size: 13px;
+        }
+        .summary-card {
+            background-color: #ebf8ff;
+            border: 1px solid #bee3f8;
+            border-radius: 6px;
+            padding: 20px;
+            margin-top: 30px;
+            text-align: center;
+        }
+        .summary-card h2 {
+            margin: 0 0 10px 0;
+            color: var(--primary-color);
+            font-size: 18px;
+        }
+        .total-price {
+            font-size: 32px;
+            font-weight: bold;
+            color: #2b6cb0;
+        }
+        .note {
+            font-size: 12px;
+            color: #718096;
+            margin-top: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: #fff;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+        th {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 10px;
+            font-size: 14px;
+            text-align: left;
+        }
+        th:last-child {
+            text-align: right;
+        }
+        .desc-box {
+            background: #f7fafc;
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        .desc-box h3 {
+            margin: 0 0 5px 0;
+            color: var(--primary-color);
+            font-size: 15px;
+        }
+    
+        .back-nav {
+            max-width: 900px;
+            margin: 0 auto 14px;
+        }
+        .back-nav a {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #2b6cb0;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .back-nav a:hover {
+            text-decoration: underline;
+        }
+</style>
+</head>
+<body>
+<div class="back-nav" data-back-nav="true"><a href="index.html">← Back to Other Heaters</a></div>
+
+
+<div class="container">
+    <h1>Ceramic Strip Heaters Pricing Calculator</h1>
+    <div class="subtitle">Interactive Pricing Calculator</div>
+
+    <div class="grid-2">
+        <div class="form-group">
+            <label for="length">Length (6 to 36 inches, or custom)</label>
+            <input type="number" id="length" min="6" max="100" value="12" oninput="calculatePrice()" onchange="calculatePrice()">
+        </div>
+
+        <div class="form-group">
+            <label for="sheathIndex">Sheath Type</label>
+            <select id="sheathIndex" onchange="calculatePrice()" oninput="calculatePrice()">
+                <option value="0">Sheath Column 1 (Aluminized - 3/8" only)</option>
+                <option value="1" selected>Sheath Column 2</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Added Voltage and Wattage Inputs -->
+    <div class="grid-2">
+        <div class="form-group">
+            <label for="voltage">Voltage</label>
+            <input type="text" id="voltage" value="240V" oninput="calculatePrice()" onchange="calculatePrice()">
+        </div>
+
+        <div class="form-group">
+            <label for="wattage">Wattage</label>
+            <input type="text" id="wattage" value="90W" oninput="calculatePrice()" onchange="calculatePrice()">
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <div class="form-group">
+            <label for="leadType">Additional Leads (Wire Gauge)</label>
+            <select id="leadType" onchange="calculatePrice()" oninput="calculatePrice()">
+                <option value="none">None (Includes 10" leads standard)</option>
+                <option value="22ga">22 ga (per dual inch) (8 amps or less) - $0.54</option>
+                <option value="18ga">18 ga (per dual inch) (14 amps or less) - $0.72</option>
+                <option value="16ga">16 ga (per dual inch) (19 amps or less) - $0.90</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="leadLength">Total Lead Length (Inches)</label>
+            <input type="number" id="leadLength" min="0" max="120" value="10" oninput="calculatePrice()" onchange="calculatePrice()">
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <div class="form-group">
+            <label for="leadProtection">Lead Protection</label>
+            <select id="leadProtection" onchange="calculatePrice()" oninput="calculatePrice()">
+                <option value="none">None</option>
+                <option value="sl4Top">Leads out the top of the sheath (SL4) - $11.59</option>
+                <option value="straightBraid">Straight SS Braid (SL1 or SL4) Base - $4.67</option>
+                <option value="rightAngleBraid">Right Angle Braid (SL4 only) Base - $23.38</option>
+                <option value="ssConduit">SS Flexible Conduit (SL4 only) Base - $4.67</option>
+                <option value="rightAngleConduit">Right angle SS Conduit (SL4 only) Base - $23.38</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="braidConduitLength">Braid / Conduit Length (Inches - if applicable)</label>
+            <input type="number" id="braidConduitLength" min="0" max="120" value="0" oninput="calculatePrice()" onchange="calculatePrice()">
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>Additional Options</label>
+        <div class="checkbox-grid">
+            <div class="checkbox-item">
+                <input type="checkbox" id="optCeramicCovers" onchange="calculatePrice()" oninput="calculatePrice()">
+                <label for="optCeramicCovers">Ceramic Terminal Covers (pair) - $5.73</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="optDistributedWattage" onchange="calculatePrice()" oninput="calculatePrice()">
+                <label for="optDistributedWattage">Distributed Wattage - $20.59</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="summary-card">
+        <h2>List Price</h2>
+        <div class="total-price" id="totalPrice">$0.00</div>
+    </div>
+
+    <div style="margin-top: 25px;">
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Quantity</th>
+                    <th style="text-align: right;">Unit Price</th>
+                </tr>
+            </thead>
+            <tbody id="qtyTableBody">
+                <!-- Dynamically populated -->
+            </tbody>
+        </table>
+    </div>
+
+    <div class="desc-box">
+        <h3>Description</h3>
+        <p id="descriptionBlurb" style="margin: 0; color: #4a5568; font-family: monospace;"></p>
+    </div>
+</div>
+
+</body>
+</html>

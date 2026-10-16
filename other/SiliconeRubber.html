@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Silicone Rubber Heaters Pricing Calculator</title>
+    <script>
+
+        const siliconeMatrix = {
+            "2": [39.15, 40.97, 42.79, 44.61, 46.43, 48.25],
+            "3": [40.06, 42.79, 45.52, 48.25, 50.98, 53.71],
+            "4": [40.97, 44.61, 48.25, 51.89, 55.53, 59.17],
+            "5": [41.88, 46.43, 50.98, 55.53, 60.08, 64.63],
+            "6": [42.79, 48.25, 53.71, 59.17, 64.63, 70.09],
+            "7": [43.70, 50.07, 56.44, 62.81, 69.18, 75.55],
+            "8": [44.61, 51.89, 59.17, 66.45, 73.73, 81.01],
+            "9": [45.52, 53.71, 61.90, 70.09, 78.28, 86.47],
+            "10": [46.43, 55.53, 64.63, 73.73, 82.83, 91.93],
+            "11": [47.34, 57.35, 67.36, 77.37, 87.38, 97.39],
+            "12": [48.25, 59.17, 70.09, 81.01, 91.93, 102.85],
+            "13": [49.16, 60.99, 72.82, 84.65, 96.48, 108.31],
+            "14": [50.07, 62.81, 75.55, 88.29, 101.03, 113.77],
+            "15": [50.98, 64.63, 78.28, 91.93, 105.58, 119.23],
+            "16": [51.89, 66.45, 81.01, 95.57, 110.13, 124.69],
+            "17": [52.80, 68.27, 83.74, 99.21, 114.68, 130.15],
+            "18": [53.71, 70.09, 86.47, 102.85, 119.23, 135.61],
+            "19": [54.62, 71.91, 89.20, 106.49, 123.78, 141.07],
+            "20": [55.53, 73.73, 91.93, 110.13, 128.33, 146.53],
+            "21": [56.44, 75.55, 94.66, 113.77, 132.88, 151.99],
+            "22": [57.35, 77.37, 97.39, 117.41, 137.43, 157.45],
+            "23": [58.26, 79.19, 100.12, 121.05, 141.98, 162.91],
+            "24": [59.17, 81.01, 102.85, 124.69, 146.53, 168.37],
+            "25": [60.08, 82.83, 105.58, 128.33, 151.08, 173.83]
+        };
+
+        function calculatePrice() {
+            const lengthElem = document.getElementById('length');
+            const widthValElem = document.getElementById('widthVal');
+            if (!lengthElem || !widthValElem) return;
+
+            const length = parseInt(lengthElem.value) || 9;
+            const widthVal = parseInt(widthValElem.value) || 9;
+            const voltage = document.getElementById('voltage') ? document.getElementById('voltage').value.trim() : "240V";
+            const wattage = document.getElementById('wattage') ? document.getElementById('wattage').value.trim() : "90W";
+
+            let basePrice = 0;
+            let lenKey = length.toString();
+
+            if (siliconeMatrix[lenKey] && widthVal <= 6) {
+                basePrice = siliconeMatrix[lenKey][widthVal - 1];
+            } else {
+                let sqInches = length * widthVal;
+                basePrice = 31.93 + (sqInches * 0.91);
+            }
+
+            const termTypeElem = document.getElementById('termType');
+            const termType = termTypeElem ? termTypeElem.value : "22ga";
+            const leadLengthElem = document.getElementById('leadLength');
+            const leadLength = leadLengthElem ? parseInt(leadLengthElem.value) || 70 : 70;
+            let termCost = 0;
+            let dualInches = Math.max(1, Math.ceil(leadLength / 2));
+
+            if (termType === "22ga") termCost = dualInches * 0.54;
+            else if (termType === "18ga") termCost = dualInches * 0.72;
+            else if (termType === "16ga") termCost = dualInches * 0.90;
+            else if (termType === "sjoHpn") termCost = dualInches * 0.56;
+            else if (termType === "hpnCordset72") termCost = 45.26;
+
+            let optionsCost = 0;
+            const sqInchesTotal = length * widthVal;
+
+            if (document.getElementById('optGroundMesh') && document.getElementById('optGroundMesh').checked) optionsCost += sqInchesTotal * 0.44;
+            let roundMultiplier = document.getElementById('optRound') && document.getElementById('optRound').checked ? 1.20 : 1.0;
+
+            if (document.getElementById('optLeadTab') && document.getElementById('optLeadTab').checked) optionsCost += 4.72;
+            if (document.getElementById('optThreePhase') && document.getElementById('optThreePhase').checked) optionsCost += 38.44;
+            if (document.getElementById('optDualZone') && document.getElementById('optDualZone').checked) optionsCost += 16.00;
+            if (document.getElementById('optAddLayerSR') && document.getElementById('optAddLayerSR').checked) optionsCost += 0.29;
+            if (document.getElementById('optCutout') && document.getElementById('optCutout').checked) optionsCost += 2.87;
+
+            const insulationElem = document.getElementById('insulation');
+            const insulation = insulationElem ? insulationElem.value : "none";
+            if (insulation === "1/16") optionsCost += sqInchesTotal * 1.18;
+            else if (insulation === "1/8") optionsCost += sqInchesTotal * 1.45;
+            else if (insulation === "1/4") optionsCost += sqInchesTotal * 1.82;
+            else if (insulation === "3/8") optionsCost += sqInchesTotal * 2.06;
+            else if (insulation === "1/2") optionsCost += sqInchesTotal * 2.35;
+
+            const fasteningElem = document.getElementById('fastening');
+            const fastening = fasteningElem ? fasteningElem.value : "none";
+            const fasteningParamElem = document.getElementById('fasteningParam');
+            const fasteningParam = fasteningParamElem ? parseFloat(fasteningParamElem.value) || 1 : 1;
+            let fasteningCost = 0;
+            if (fastening === "psa") fasteningCost = sqInchesTotal * 0.47;
+            else if (fastening === "vulcanized") fasteningCost = 20.50;
+            else if (fastening === "velcroBase") fasteningCost = 20.50;
+            else if (fastening === "velcroLinear") fasteningCost = fasteningParam * 20.50;
+            else if (fastening === "bootHooks") fasteningCost = 8.03;
+            else if (fastening === "lacing") fasteningCost = fasteningParam * 1.58;
+            else if (fastening === "latchSpring") fasteningCost = 22.82;
+
+            let tempControlCost = 0;
+            let hasTempControl = false;
+            const tcRtLengthElem = document.getElementById('tcRtLength');
+            const tcRtLength = tcRtLengthElem ? parseInt(tcRtLengthElem.value) || 10 : 10;
+            const tcExtraInches = Math.max(0, tcRtLength - 10);
+
+            if (document.getElementById('tcPreset') && document.getElementById('tcPreset').checked) { tempControlCost += 102.46; hasTempControl = true; }
+            if (document.getElementById('tcAdjustable') && document.getElementById('tcAdjustable').checked) { tempControlCost += 102.46; hasTempControl = true; }
+            if (document.getElementById('tcThermocouple') && document.getElementById('tcThermocouple').checked) { tempControlCost += 31.63 + (tcExtraInches * 0.59); hasTempControl = true; }
+            if (document.getElementById('tcRtd') && document.getElementById('tcRtd').checked) { tempControlCost += 51.24 + (tcExtraInches * 0.57); hasTempControl = true; }
+            if (document.getElementById('tcThermalFuse') && document.getElementById('tcThermalFuse').checked) { tempControlCost += 23.46; hasTempControl = true; }
+
+            let baseUnitPrice = (basePrice * roundMultiplier) + termCost + optionsCost + fasteningCost + tempControlCost;
+
+            const tiers = [
+                { range: "1 - 1", mult: 1.0000 },
+                { range: "2 - 4", mult: 0.8125 },
+                { range: "5 - 9", mult: 0.6250 },
+                { range: "10 - 24", mult: 0.5000 },
+                { range: "25 - 49", mult: 0.3750 },
+                { range: "50 - 99", mult: 0.3500 },
+                { range: "100+", mult: 0.3375 }
+            ];
+
+            const totalPriceElem = document.getElementById('totalPrice');
+            if (totalPriceElem) totalPriceElem.innerText = '$' + baseUnitPrice.toFixed(2);
+
+            let tbody = document.getElementById('qtyTableBody');
+            if (tbody) {
+                tbody.innerHTML = '';
+                tiers.forEach(tier => {
+                    let tierPrice = baseUnitPrice * tier.mult;
+                    let tr = document.createElement('tr');
+                    tr.innerHTML = `<td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${tier.range}</td>` +
+                                   `<td style="padding: 8px; border-bottom: 1px solid #e2e8f0; text-align: right;">$${tierPrice.toFixed(2)}</td>`;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            let tcText = hasTempControl ? "with Temperature Control" : "with No Temperature Control";
+            let adhesiveText = fastening === "none" ? "No Adhesive" : `with ${fastening.toUpperCase()} Adhesive`;
+            let cutoutText = document.getElementById('optCutout') && document.getElementById('optCutout').checked ? "With Holes or Cutouts" : "With and no Holes or Cutouts";
+            let descString = `${parseFloat(length).toFixed(2)} in long x ${parseFloat(widthVal).toFixed(2)} in wide Silicone Rubber Heater, ${voltage} ${wattage} ${parseFloat(leadLength).toFixed(2)} in of 22 ga Teflon Leads ${tcText}, and ${adhesiveText}. ${cutoutText}.`;
+            
+            let descElem = document.getElementById('descriptionBlurb');
+            if (descElem) descElem.innerText = descString;
+        }
+
+        window.onload = function() {
+            calculatePrice();
+        }
+    </script>
+    <style>
+        :root {
+            --primary-color: #1a365d;
+            --secondary-color: #2b6cb0;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --text-color: #2d3748;
+            --border-color: #e2e8f0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.5;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 5px;
+            font-size: 24px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        select, input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+            background-color: #fff;
+            box-sizing: border-box;
+        }
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 3px rgba(43, 108, 176, 0.1);
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .checkbox-item input {
+            width: auto;
+        }
+        .checkbox-item label {
+            margin-bottom: 0;
+            font-weight: normal;
+            font-size: 13px;
+        }
+        .summary-card {
+            background-color: #ebf8ff;
+            border: 1px solid #bee3f8;
+            border-radius: 6px;
+            padding: 20px;
+            margin-top: 30px;
+            text-align: center;
+        }
+        .summary-card h2 {
+            margin: 0 0 10px 0;
+            color: var(--primary-color);
+            font-size: 18px;
+        }
+        .total-price {
+            font-size: 32px;
+            font-weight: bold;
+            color: #2b6cb0;
+        }
+        .desc-box {
+            background: #f7fafc;
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        .desc-box h3 {
+            margin: 0 0 5px 0;
+            color: var(--primary-color);
+            font-size: 15px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: #fff;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+        th {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 10px;
+            font-size: 14px;
+            text-align: left;
+        }
+        th:last-child {
+            text-align: right;
+        }
+    
+        .back-nav {
+            max-width: 900px;
+            margin: 0 auto 14px;
+        }
+        .back-nav a {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #2b6cb0;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .back-nav a:hover {
+            text-decoration: underline;
+        }
+</style>
+</head>
+<body>
+<div class="back-nav" data-back-nav="true"><a href="index.html">← Back to Other Heaters</a></div>
+
+
+<div class="container">
+    <h1>Silicone Rubber Heaters Pricing Calculator</h1>
+
+    <div class="grid-2">
+        <div class="form-group">
+            <label for="length">Length (Inches)</label>
+            <input type="number" id="length" min="1" max="100" value="9" oninput="calculatePrice()" onchange="calculatePrice()">
+        </div>
+
+        <div class="form-group">
+            <label for="widthVal">Width (Inches)</label>
+            <input type="number" id="widthVal" min="1" max="100" value="9" oninput="calculatePrice()" onchange="calculatePrice()">
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <div class="form-group">
+            <label for="voltage">Voltage</label>
+            <input type="text" id="voltage" value="240V" oninput="calculatePrice()" onchange="calculatePrice()">
+        </div>
+
+        <div class="form-group">
+            <label for="wattage">Wattage</label>
+            <input type="text" id="wattage" value="90W" oninput="calculatePrice()" onchange="calculatePrice()">
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <div class="form-group">
+            <label for="leadLength">Total Lead Length (Inches)</label>
+            <input type="number" id="leadLength" min="0" max="120" value="70" oninput="calculatePrice()" onchange="calculatePrice()">
+        </div>
+
+        <div class="form-group">
+            <label for="termType">Termination / Leads Type</label>
+            <select id="termType" onchange="calculatePrice()" oninput="calculatePrice()">
+                <option value="22ga" selected>22 ga Teflon Leads</option>
+                <option value="18ga">18 ga Teflon Leads</option>
+                <option value="16ga">16 ga Teflon Leads</option>
+                <option value="sjoHpn">SJO cord and HPN cord</option>
+                <option value="hpnCordset72">72" 2 conductor HPN cordset</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <div class="form-group">
+            <label for="fastening">Fastening Options / Adhesive</label>
+            <select id="fastening" onchange="calculatePrice()" oninput="calculatePrice()">
+                <option value="none" selected>None (No Adhesive)</option>
+                <option value="psa">PSA (per sq. in.)</option>
+                <option value="vulcanized">Vulcanized to Part</option>
+                <option value="velcroBase">Velcro base cost</option>
+                <option value="velcroLinear">Velcro (per linear inch)</option>
+                <option value="bootHooks">Boot Hooks</option>
+                <option value="lacing">Lacing (per foot)</option>
+                <option value="latchSpring">Latch with Spring</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="fasteningParam">Fastening Quantity (Sq. In. / Linear In. / Feet)</label>
+            <input type="number" id="fasteningParam" min="1" value="1" oninput="calculatePrice()" onchange="calculatePrice()">
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <div class="form-group">
+            <label for="insulation">Insulation Options</label>
+            <select id="insulation" onchange="calculatePrice()" oninput="calculatePrice()">
+                <option value="none" selected>None</option>
+                <option value="1/16">1/16" sponge</option>
+                <option value="1/8">1/8" sponge</option>
+                <option value="1/4">1/4" sponge</option>
+                <option value="3/8">3/8" sponge</option>
+                <option value="1/2">1/2" sponge</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="tcRtLength">TC / RTD Lead Length (Inches)</label>
+            <input type="number" id="tcRtLength" min="10" max="120" value="10" oninput="calculatePrice()" onchange="calculatePrice()">
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>Options & Add-ons</label>
+        <div class="checkbox-grid">
+            <div class="checkbox-item">
+                <input type="checkbox" id="optGroundMesh" onchange="calculatePrice()" oninput="calculatePrice()">
+                <label for="optGroundMesh">Ground mesh (extra layer of SR)</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="optRound" onchange="calculatePrice()" oninput="calculatePrice()">
+                <label for="optRound">Round Heater (+20% sq area)</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="optLeadTab" onchange="calculatePrice()" oninput="calculatePrice()">
+                <label for="optLeadTab">Lead Exit Tab</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="optThreePhase" onchange="calculatePrice()" oninput="calculatePrice()">
+                <label for="optThreePhase">Three Phase Construction</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="optDualZone" onchange="calculatePrice()" oninput="calculatePrice()">
+                <label for="optDualZone">Extra Electrical Zone / Dual Zone</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="optAddLayerSR" onchange="calculatePrice()" oninput="calculatePrice()">
+                <label for="optAddLayerSR">Additional Layer of SR</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="optCutout" onchange="calculatePrice()" oninput="calculatePrice()">
+                <label for="optCutout">Cutout or Hole</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>Temperature Control Options</label>
+        <div class="checkbox-grid">
+            <div class="checkbox-item">
+                <input type="checkbox" id="tcPreset" onchange="calculatePrice()" oninput="calculatePrice()">
+                <label for="tcPreset">Stock preset thermostat</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="tcAdjustable" onchange="calculatePrice()" oninput="calculatePrice()">
+                <label for="tcAdjustable">Stock adjustable thermostat</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="tcThermocouple" onchange="calculatePrice()" oninput="calculatePrice()">
+                <label for="tcThermocouple">Thermocouple</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="tcRtd" onchange="calculatePrice()" oninput="calculatePrice()">
+                <label for="tcRtd">RTD</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="tcThermalFuse" onchange="calculatePrice()" oninput="calculatePrice()">
+                <label for="tcThermalFuse">Thermal Fuse</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="summary-card">
+        <h2>List Price</h2>
+        <div class="total-price" id="totalPrice">$0.00</div>
+    </div>
+
+    <div style="margin-top: 25px;">
+       
+        <table>
+            <thead>
+                <tr>
+                    <th>Quantity</th>
+                    <th style="text-align: right;">Unit Price</th>
+                </tr>
+            </thead>
+            <tbody id="qtyTableBody">
+                <!-- Dynamically populated -->
+            </tbody>
+        </table>
+    </div>
+
+    <div class="desc-box">
+        <h3>Description</h3>
+        <p id="descriptionBlurb" style="margin: 0; color: #4a5568; font-family: monospace;"></p>
+    </div>
+</div>
+
+</body>
+</html>

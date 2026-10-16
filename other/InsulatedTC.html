@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MgO Insulated Thermocouples Pricing Calculator</title>
+    <script>
+        // MgO Insulated Thermocouples Matrix Data
+        // Structure for each diameter: [base price for 1st 6", addl price per 6"]
+        const mgoData = {
+            "304SS_J": {
+                ".062": [19.69, 5.16],
+                ".125": [20.97, 5.82],
+                ".187": [25.84, 9.36],
+                ".250": [31.82, 12.54]
+            },
+            "304SS_K": {
+                ".062": [19.69, 5.16],
+                ".125": [20.97, 5.82],
+                ".187": [25.84, 9.36],
+                ".250": [31.82, 12.54]
+            },
+            "316SS_J": {
+                ".062": [19.69, 5.16],
+                ".125": [20.97, 5.82],
+                ".187": [26.93, 9.36],
+                ".250": [32.88, 12.54]
+            },
+            "316SS_K": {
+                ".062": [19.69, 5.16],
+                ".125": [20.97, 5.82],
+                ".187": [26.93, 9.36],
+                ".250": [32.88, 12.54]
+            },
+            "Inconel_J": {
+                ".062": [29.35, 8.40],
+                ".125": [29.35, 9.66],
+                ".187": [35.30, 20.46],
+                ".250": [47.34, 30.90]
+            },
+            "Inconel_K": {
+                ".062": [29.35, 8.40],
+                ".125": [29.35, 10.08],
+                ".187": [25.84, 20.46], // Note: matches row in catalog table
+                ".250": [43.86, 30.90]
+            },
+            "304SS_J_Dual": {
+                ".062": [null, null],
+                ".125": [null, null],
+                ".187": [null, null],
+                ".250": [37.91, 16.34]
+            },
+            "304SS_K_Dual": {
+                ".062": [null, null],
+                ".125": [null, null],
+                ".187": [null, null],
+                ".250": [37.91, 16.34]
+            }
+        };
+
+        function calculatePrice() {
+            const materialCombo = document.getElementById('materialCombo').value;
+            const diameter = document.getElementById('diameter').value;
+            const totalInches = parseInt(document.getElementById('lengthInches').value) || 6;
+
+            let basePrice = 0;
+            const rowData = mgoData[materialCombo][diameter];
+
+            if (rowData && rowData[0] !== null) {
+                let first6Base = rowData[0];
+                let addl6Rate = rowData[1];
+
+                if (totalInches <= 6) {
+                    basePrice = first6Base;
+                } else {
+                    let extraInches = totalInches - 6;
+                    let extra6Blocks = Math.ceil(extraInches / 6);
+                    basePrice = first6Base + (extra6Blocks * addl6Rate);
+                }
+            } else {
+                document.getElementById('totalPrice').innerText = "N/A (Combination not available)";
+                return;
+            }
+
+            // Terminations cost
+            let termCost = 0;
+            const termination = document.getElementById('termination').value;
+            if (termination === "stdPlugJ") termCost = 16.95;
+            else if (termination === "stdPlugK") termCost = 18.42;
+            else if (termination === "miniPlugJ") termCost = 16.95;
+            else if (termination === "miniPlugK") termCost = 18.42;
+            else if (termination === "cableClamp") termCost = 7.70;
+            else if (termination === "bx") termCost = 10.46;
+            else if (termination === "aluminumHead") termCost = 119.87;
+            else if (termination === "doubleEndedFitting") termCost = 36.89;
+
+            // Options cost
+            let optionsCost = 0;
+            if (document.getElementById('optUngrounded').checked) optionsCost += 6.76;
+            if (document.getElementById('optBend').checked) optionsCost += 3.08;
+
+            // Fittings cost
+            const fitting = document.getElementById('fitting').value;
+            if (fitting === "fixed_19_97") optionsCost += 19.97;
+            else if (fitting === "fixed_21_49") optionsCost += 21.49;
+            else if (fitting === "fixed_26_19") optionsCost += 26.19;
+            else if (fitting === "fixed_30_73") optionsCost += 30.73;
+            else if (fitting === "comp_brass_11_38") optionsCost += 11.38;
+            else if (fitting === "comp_304_45_47") optionsCost += 45.47;
+
+            let baseUnitPrice = basePrice + termCost + optionsCost;
+
+            const tiers = [
+                { range: "1 - 1", mult: 1.0000 },
+                { range: "2 - 4", mult: 0.8125 },
+                { range: "5 - 9", mult: 0.6250 },
+                { range: "10 - 24", mult: 0.5000 },
+                { range: "25 - 49", mult: 0.3750 },
+                { range: "50 - 99", mult: 0.3500 },
+                { range: "100+", mult: 0.3374 }
+            ];
+
+            document.getElementById('totalPrice').innerText = '$' + baseUnitPrice.toFixed(2);
+
+            let tbody = document.getElementById('qtyTableBody');
+            tbody.innerHTML = '';
+            tiers.forEach(tier => {
+                let tierPrice = baseUnitPrice * tier.mult;
+                let tr = document.createElement('tr');
+                tr.innerHTML = `<td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${tier.range}</td>` +
+                               `<td style="padding: 8px; border-bottom: 1px solid #e2e8f0; text-align: right;">$${tierPrice.toFixed(2)}</td>`;
+                tbody.appendChild(tr);
+            });
+
+            let calText = materialCombo.includes("J") ? "Type J" : "Type K";
+            let sheathText = materialCombo.includes("316SS") ? "316 Stainless Sheath" : (materialCombo.includes("Inconel") ? "Inconel Sheath" : "304 Stainless Sheath");
+            let groundText = document.getElementById('optUngrounded').checked ? "Ungrounded" : "Grounded";
+            let descString = `${calText}, ${totalInches}.00 in Long, ${diameter} diameter, ${groundText}, ${sheathText} Mineral Insulated Thermocouple.`;
+            document.getElementById('descriptionBlurb').innerText = descString;
+        }
+
+        window.onload = function() {
+            calculatePrice();
+        }
+    </script>
+    <style>
+        :root {
+            --primary-color: #1a365d;
+            --secondary-color: #2b6cb0;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --text-color: #2d3748;
+            --border-color: #e2e8f0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.5;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 5px;
+            font-size: 24px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #718096;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        select, input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+            background-color: #fff;
+            box-sizing: border-box;
+        }
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 3px rgba(43, 108, 176, 0.1);
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .checkbox-item input {
+            width: auto;
+        }
+        .checkbox-item label {
+            margin-bottom: 0;
+            font-weight: normal;
+            font-size: 13px;
+        }
+        .summary-card {
+            background-color: #ebf8ff;
+            border: 1px solid #bee3f8;
+            border-radius: 6px;
+            padding: 20px;
+            margin-top: 30px;
+            text-align: center;
+        }
+        .summary-card h2 {
+            margin: 0 0 10px 0;
+            color: var(--primary-color);
+            font-size: 18px;
+        }
+        .total-price {
+            font-size: 32px;
+            font-weight: bold;
+            color: #2b6cb0;
+        }
+        .note {
+            font-size: 12px;
+            color: #718096;
+            margin-top: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: #fff;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+        th {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 10px;
+            font-size: 14px;
+            text-align: left;
+        }
+        th:last-child {
+            text-align: right;
+        }
+        .desc-box {
+            background: #f7fafc;
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        .desc-box h3 {
+            margin: 0 0 5px 0;
+            color: var(--primary-color);
+            font-size: 15px;
+        }
+    
+        .back-nav {
+            max-width: 900px;
+            margin: 0 auto 14px;
+        }
+        .back-nav a {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #2b6cb0;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .back-nav a:hover {
+            text-decoration: underline;
+        }
+</style>
+</head>
+<body>
+<div class="back-nav" data-back-nav="true"><a href="index.html">← Back to Other Heaters</a></div>
+
+
+<div class="container">
+    <h1>MgO Insulated Thermocouples Pricing Calculator</h1>
+
+
+    <div class="grid-2">
+        <div class="form-group">
+            <label for="materialCombo">Sheath Material & Calibration</label>
+            <select id="materialCombo" onchange="calculatePrice()" oninput="calculatePrice()">
+                <option value="304SS_J">304 SS Type J</option>
+                <option value="304SS_K">304 SS Type K</option>
+                <option value="316SS_J">316 SS Type J</option>
+                <option value="316SS_K">316 SS Type K</option>
+                <option value="Inconel_J">Inconel Type J</option>
+                <option value="Inconel_K">Inconel Type K</option>
+                <option value="304SS_J_Dual">304 SS Type J Dual (.250" only)</option>
+                <option value="304SS_K_Dual">304 SS Type K Dual (.250" only)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="diameter">Sheath Diameter</label>
+            <select id="diameter" onchange="calculatePrice()" oninput="calculatePrice()">
+                <option value=".062">.062" Diameter</option>
+                <option value=".125">.125" Diameter</option>
+                <option value=".187">.187" Diameter</option>
+                <option value=".250" selected>.250" Diameter</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <div class="form-group">
+            <label for="lengthInches">Probe Length (Inches)</label>
+            <input type="number" id="lengthInches" min="1" max="120" value="6" oninput="calculatePrice()" onchange="calculatePrice()">
+     
+        </div>
+
+        <div class="form-group">
+            <label for="termination">Terminations</label>
+            <select id="termination" onchange="calculatePrice()" oninput="calculatePrice()">
+                <option value="spadeLugs">Spade Lugs ($0.00)</option>
+                <option value="stdPlugJ">Type J Standard Plug or Jack ($16.95)</option>
+                <option value="stdPlugK">Type K Standard Plug or Jack ($18.42)</option>
+                <option value="miniPlugJ">Type J Mini Plug or Jack ($16.95)</option>
+                <option value="miniPlugK">Type K Mini Plug or Jack ($18.42)</option>
+                <option value="cableClamp">Plug or Jack secured with cable clamp ($7.70)</option>
+                <option value="bx">BX Connector ($10.46)</option>
+                <option value="aluminumHead">Aluminum Head with terminal block ($119.87)</option>
+                <option value="doubleEndedFitting">1/2" x 1/2" NPT doubled ended fitting ($36.89)</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <div class="form-group">
+            <label for="fitting">Fittings (Fixed & Compression)</label>
+            <select id="fitting" onchange="calculatePrice()" oninput="calculatePrice()">
+                <option value="none">None</option>
+                <option value="fixed_19_97">Fixed: 1/8" NPT, Single, 304SS, .062"–.25" ($19.97)</option>
+                <option value="fixed_21_49">Fixed: 1/4" NPT, Single, 304SS, .188"–.250" ($21.49)</option>
+                <option value="fixed_26_19">Fixed: 1/2" NPT, Single, 304SS, .125"–.250" ($26.19)</option>
+                <option value="fixed_30_73">Fixed: 1/2" NPT, Double, 304SS, .125"–.250" ($30.73)</option>
+                <option value="comp_brass_11_38">Compression: 1/8" NPT, Brass, .062"–.250" ($11.38)</option>
+                <option value="comp_304_45_47">Compression: 1/8" NPT, 304 SS, .062"–.250" ($45.47)</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>Options</label>
+        <div class="checkbox-grid">
+            <div class="checkbox-item">
+                <input type="checkbox" id="optGrounded" checked disabled>
+                <label for="optGrounded">Grounded Construction ($0.00 standard)</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="optUngrounded" onchange="calculatePrice()" oninput="calculatePrice()">
+                <label for="optUngrounded">Ungrounded Construction ($6.76)</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="optBend" onchange="calculatePrice()" oninput="calculatePrice()">
+                <label for="optBend">Sheath Bend ($3.08)</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="summary-card">
+        <h2>List Price</h2>
+        <div class="total-price" id="totalPrice">$0.00</div>
+    </div>
+
+    <div style="margin-top: 25px;">
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Quantity</th>
+                    <th style="text-align: right;">Unit Price</th>
+                </tr>
+            </thead>
+            <tbody id="qtyTableBody">
+                <!-- Dynamically populated -->
+            </tbody>
+        </table>
+    </div>
+
+    <div class="desc-box">
+        <h3>Description</h3>
+        <p id="descriptionBlurb" style="margin: 0; color: #4a5568; font-family: monospace;"></p>
+    </div>
+</div>
+
+</body>
+</html>

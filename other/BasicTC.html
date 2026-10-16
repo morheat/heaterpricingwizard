@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thermocouples and RTDs Comprehensive Pricing Calculator</title>
+    <script>
+        // Full matrix catalog covering all thermocouple and RTD styles from the provided tables
+        const tcCatalogs = {
+            "typeBS": {
+                name: "Type BS adjustable with SS braid",
+                matrix: {
+                    "typeJ": [20.89, 24.57, 28.25, 31.93, 35.61, 39.29, 42.97, 46.65, 50.33, 54.01, 57.69, 61.37],
+                    "typeK": [20.91, 25.94, 30.97, 36.00, 41.03, 46.06, 51.09, 56.12, 61.15, 66.18, 71.21, 76.24],
+                    "typeT": [27.26, 34.02, 40.78, 47.54, 54.30, 61.06, 67.82, 74.58, 81.34, 88.10, 94.86, 101.62],
+                    "rtd2": [76.00, 82.76, 89.52, 96.28, 103.04, 109.80, 116.56, 123.32, 130.08, 136.84, 143.60, 150.36],
+                    "rtd3": [75.94, 83.84, 91.74, 99.64, 107.54, 115.44, 123.34, 131.24, 139.14, 147.04, 154.94, 162.84]
+                },
+                addlFt: { "typeJ": 3.68, "typeK": 5.03, "typeT": 6.76, "rtd2": 6.76, "rtd3": 7.90 }
+            },
+            "typeAC": {
+                name: "Type AC adjustable with SS armor",
+                matrix: {
+                    "typeJ": [23.43, 28.85, 34.27, 39.69, 45.11, 50.53, 55.95, 61.37, 66.79, 72.21, 77.63, 83.05],
+                    "typeK": [25.98, 32.14, 38.30, 44.46, 50.62, 56.78, 62.94, 69.10, 75.26, 81.42, 87.58, 93.74],
+                    "typeT": [29.72, 37.81, 45.90, 53.99, 62.08, 70.17, 78.26, 86.35, 94.44, 102.53, 110.62, 118.71],
+                    "rtd2": [80.16, 88.25, 96.34, 104.43, 112.52, 120.61, 128.70, 136.79, 144.88, 152.97, 161.06, 169.15],
+                    "rtd3": [80.96, 90.33, 99.70, 109.07, 118.44, 127.81, 137.18, 146.55, 155.92, 165.29, 174.66, 184.03]
+                },
+                addlFt: { "typeJ": 5.42, "typeK": 6.16, "typeT": 8.09, "rtd2": 8.09, "rtd3": 9.37 }
+            },
+            "typeBS12mm": {
+                name: "Type BS 12mm adjustable with SS braid",
+                matrix: {
+                    "typeJ": [59.92, 63.60, 67.28, 70.96, 74.64, 78.32, 82.00, 85.68, 89.36, 93.04, 96.72, 100.40],
+                    "typeK": [59.15, 64.18, 69.21, 74.24, 79.27, 84.30, 89.33, 94.36, 99.39, 104.42, 109.45, 114.48],
+                    "typeT": [27.26, 34.02, 40.78, 47.54, 54.30, 61.06, 67.82, 74.58, 81.34, 88.10, 94.86, 101.62],
+                    "rtd2": [115.39, 122.15, 128.91, 135.67, 142.43, 149.19, 155.95, 162.71, 169.47, 176.23, 182.99, 189.75],
+                    "rtd3": [116.53, 124.43, 132.33, 140.23, 148.13, 156.03, 163.93, 171.83, 179.73, 187.63, 195.53, 203.43]
+                },
+                addlFt: { "typeJ": 3.68, "typeK": 5.03, "typeT": 6.76, "rtd2": 6.76, "rtd3": 7.90 }
+            },
+            "typeBS14mm": {
+                name: "Type BS 14mm adjustable with SS braid",
+                matrix: {
+                    "typeJ": [103.80, 107.48, 111.16, 114.84, 118.52, 122.20, 125.88, 129.56, 133.24, 136.92, 140.60, 144.28],
+                    "typeK": [103.41, 108.44, 113.47, 118.50, 123.53, 128.56, 133.59, 138.62, 143.65, 148.68, 153.71, 158.74],
+                    "typeT": [27.26, 34.02, 40.78, 47.54, 54.30, 61.06, 67.82, 74.58, 81.34, 88.10, 94.86, 101.62],
+                    "rtd2": [159.18, 165.94, 172.70, 179.46, 186.22, 192.98, 199.74, 206.50, 213.26, 220.02, 226.78, 233.54],
+                    "rtd3": [160.32, 168.22, 176.12, 184.02, 191.92, 199.82, 207.72, 215.62, 223.52, 231.42, 239.32, 247.22]
+                },
+                addlFt: { "typeJ": 3.68, "typeK": 5.03, "typeT": 6.76, "rtd2": 6.76, "rtd3": 7.90 }
+            },
+            "typeTCarmor": {
+                name: "Type TC adjustable with SS armor",
+                matrix: {
+                    "typeJ": [26.46, 31.88, 37.30, 42.72, 48.14, 53.56, 58.98, 64.40, 69.82, 75.24, 80.66, 86.08],
+                    "typeK": [32.15, 38.31, 44.47, 50.63, 56.79, 62.95, 69.11, 75.27, 81.43, 87.59, 93.75, 99.91],
+                    "typeT": [28.59, 36.68, 44.77, 52.86, 60.95, 69.04, 77.13, 85.22, 93.31, 101.40, 109.49, 117.58],
+                    "rtd2": [83.23, 91.32, 99.41, 107.50, 115.59, 123.68, 131.77, 139.86, 147.95, 156.04, 164.13, 172.22],
+                    "rtd3": [84.31, 93.68, 103.05, 112.42, 121.79, 131.16, 140.53, 149.90, 159.27, 168.64, 178.01, 187.38]
+                },
+                addlFt: { "typeJ": 5.42, "typeK": 6.16, "typeT": 8.09, "rtd2": 8.09, "rtd3": 9.37 }
+            },
+            "type45TC": {
+                name: "Type 45TC Fixed TC with SS armor and 45 deg bend",
+                matrix: {
+                    "typeJ": [27.11, 32.53, 37.95, 43.37, 48.79, 54.21, 59.63, 65.05, 70.47, 75.89, 81.31, 86.73],
+                    "typeK": [34.95, 41.11, 47.27, 53.43, 59.59, 65.75, 71.91, 78.07, 84.23, 90.39, 96.55, 102.71],
+                    "typeT": [35.74, 43.83, 51.92, 60.01, 68.10, 76.19, 84.28, 92.37, 100.46, 108.55, 116.64, 124.73],
+                    "rtd2": [84.57, 92.66, 100.75, 108.84, 116.93, 125.02, 133.11, 141.20, 149.29, 157.38, 165.47, 173.56],
+                    "rtd3": [85.64, 95.01, 104.38, 113.75, 123.12, 132.49, 141.86, 151.23, 160.60, 169.97, 179.34, 188.71]
+                },
+                addlFt: { "typeJ": 5.42, "typeK": 6.16, "typeT": 8.09, "rtd2": 8.09, "rtd3": 9.37 }
+            },
+            "type90TC": {
+                name: "Type 90TC Fixed TC with SS armor and 90 deg bend",
+                matrix: {
+                    "typeJ": [27.11, 32.53, 37.95, 43.37, 48.79, 54.21, 59.63, 65.05, 70.47, 75.89, 81.31, 86.73],
+                    "typeK": [34.95, 41.11, 47.27, 53.43, 59.59, 65.75, 71.91, 78.07, 84.23, 90.39, 96.55, 102.71],
+                    "typeT": [35.74, 43.83, 51.92, 60.01, 68.10, 76.19, 84.28, 92.37, 100.46, 108.55, 116.64, 124.73],
+                    "rtd2": [84.57, 92.66, 100.75, 108.84, 116.93, 125.02, 133.11, 141.20, 149.29, 157.38, 165.47, 173.56],
+                    "rtd3": [85.64, 95.01, 104.38, 113.75, 123.12, 132.49, 141.86, 151.23, 160.60, 169.97, 179.34, 188.71]
+                },
+                addlFt: { "typeJ": 5.42, "typeK": 6.16, "typeT": 8.09, "rtd2": 8.09, "rtd3": 9.37 }
+            },
+            "typeWQ_WN": {
+                name: "Type WQ (3/16) and Type WN (5/16) washer style TC",
+                matrix: {
+                    "typeJ": [17.68, 21.36, 25.04, 28.72, 32.40, 36.08, 39.76, 43.44, 47.12, 50.80, 54.48, 58.16],
+                    "typeK": [19.09, 24.12, 29.15, 34.18, 39.21, 44.24, 49.27, 54.30, 59.33, 64.36, 69.39, 74.42],
+                    "typeT": [27.26, 34.02, 40.78, 47.54, 54.30, 61.06, 67.82, 74.58, 81.34, 88.10, 94.86, 101.62],
+                    "rtd2": [73.00, 79.76, 86.52, 93.28, 100.04, 106.80, 113.56, 120.32, 127.08, 133.84, 140.60, 147.36],
+                    "rtd3": [74.14, 82.04, 89.94, 97.84, 105.74, 113.64, 121.54, 129.44, 137.34, 145.24, 153.14, 161.04]
+                },
+                addlFt: { "typeJ": 3.68, "typeK": 5.03, "typeT": 6.76, "rtd2": 6.76, "rtd3": 7.90 }
+            },
+            "typeNB": {
+                name: "Type NB Newbury Nozzle TC with SS braid",
+                matrix: {
+                    "typeJ": [20.95, 24.63, 28.31, 31.99, 35.67, 39.35, 43.03, 46.71, 50.39, 54.07, 57.75, 61.43],
+                    "typeK": [18.83, 23.86, 28.89, 33.92, 38.95, 43.98, 49.01, 54.04, 59.07, 64.10, 69.13, 74.16],
+                    "typeT": [27.26, 34.02, 40.78, 47.54, 54.30, 61.06, 67.82, 74.58, 81.34, 88.10, 94.86, 101.62],
+                    "rtd2": [76.27, 83.03, 89.79, 96.55, 103.31, 110.07, 116.83, 123.59, 130.35, 137.11, 143.87, 150.63],
+                    "rtd3": [77.41, 85.31, 93.21, 101.11, 109.01, 116.91, 124.81, 132.71, 140.61, 148.51, 156.41, 164.31]
+                },
+                addlFt: { "typeJ": 3.68, "typeK": 5.03, "typeT": 6.76, "rtd2": 6.76, "rtd3": 7.90 }
+            },
+            "typeSH": {
+                name: "Type SH shim style with SS braid",
+                matrix: {
+                    "typeJ": [25.64, 29.32, 33.00, 36.68, 40.36, 44.04, 47.72, 51.40, 55.08, 58.76, 62.44, 66.12],
+                    "typeK": [26.18, 31.21, 36.24, 41.27, 46.30, 51.33, 56.36, 61.39, 66.42, 71.45, 76.48, 81.51],
+                    "typeT": [27.26, 34.02, 40.78, 47.54, 54.30, 61.06, 67.82, 74.58, 81.34, 88.10, 94.86, 101.62],
+                    "rtd2": [80.96, 87.72, 94.48, 101.24, 108.00, 114.76, 121.52, 128.28, 135.04, 141.80, 148.56, 155.32],
+                    "rtd3": [82.10, 90.00, 97.90, 105.80, 113.70, 121.60, 129.50, 137.40, 145.30, 153.20, 161.10, 169.00]
+                },
+                addlFt: { "typeJ": 3.68, "typeK": 5.03, "typeT": 6.76, "rtd2": 6.76, "rtd3": 7.90 }
+            },
+            "typeNZ": {
+                name: "Type NZ shallow nozzle TC with SS braid",
+                matrix: {
+                    "typeJ": [18.95, 22.63, 26.31, 29.99, 33.67, 37.35, 41.03, 44.71, 48.39, 52.07, 55.75, 59.43],
+                    "typeK": [19.49, 24.52, 29.55, 34.58, 39.61, 44.64, 49.67, 54.70, 59.73, 64.76, 69.79, 74.82],
+                    "typeT": [27.26, 34.02, 40.78, 47.54, 54.30, 61.06, 67.82, 74.58, 81.34, 88.10, 94.86, 101.62],
+                    "rtd2": [74.27, 81.03, 87.79, 94.55, 101.31, 108.07, 114.83, 121.59, 128.35, 135.11, 141.87, 148.63],
+                    "rtd3": [75.41, 83.31, 91.21, 99.11, 107.01, 114.91, 122.81, 130.71, 138.61, 146.51, 154.41, 162.31]
+                },
+                addlFt: { "typeJ": 3.68, "typeK": 5.03, "typeT": 6.76, "rtd2": 6.76, "rtd3": 7.90 }
+            },
+            "typeNS": {
+                name: "Type NS Nissei Nozzle TC with SS braid",
+                matrix: {
+                    "typeJ": [26.58, 30.26, 33.94, 37.62, 41.30, 44.98, 48.66, 52.34, 56.02, 59.70, 63.38, 67.06],
+                    "typeK": [27.40, 32.43, 37.46, 42.49, 47.52, 52.55, 57.58, 62.61, 67.64, 72.67, 77.70, 82.73],
+                    "typeT": [27.26, 34.02, 40.78, 47.54, 54.30, 61.06, 67.82, 74.58, 81.34, 88.10, 94.86, 101.62],
+                    "rtd2": [81.90, 88.66, 95.42, 102.18, 108.94, 115.70, 122.46, 129.22, 135.98, 142.74, 149.50, 156.26],
+                    "rtd3": [83.04, 90.94, 98.84, 106.74, 114.64, 122.54, 130.44, 138.34, 146.24, 154.14, 162.04, 169.94]
+                },
+                addlFt: { "typeJ": 3.68, "typeK": 5.03, "typeT": 6.76, "rtd2": 6.76, "rtd3": 7.90 }
+            },
+            "typeCT": {
+                name: "Type CT Cartridge TC with SS braid",
+                matrix: {
+                    "typeJ": [11.04, 14.72, 18.40, 22.08, 25.76, 29.44, 33.12, 36.80, 40.48, 44.16, 47.84, 51.52],
+                    "typeK": [12.33, 17.36, 22.39, 27.42, 32.45, 37.48, 42.51, 47.54, 52.57, 57.60, 62.63, 67.66],
+                    "typeT": [17.66, 26.49, 35.32, 44.15, 52.98, 61.81, 70.64, 79.47, 88.30, 97.13, 105.96, 114.79],
+                    "rtd2": [86.58, 93.34, 100.10, 106.86, 113.62, 120.38, 127.14, 133.90, 140.66, 147.42, 154.18, 160.94],
+                    "rtd3": [87.72, 95.62, 103.52, 111.42, 119.32, 127.22, 135.12, 143.02, 150.92, 158.82, 166.72, 174.66]
+                },
+                addlFt: { "typeJ": 3.68, "typeK": 5.03, "typeT": 6.76, "rtd2": 6.76, "rtd3": 7.90 }
+            },
+            "typeMTC": {
+                name: "Type MTC Hot Melt Nozzle TC with SS armor and 3/8-24 thread",
+                matrix: {
+                    "typeJ": [43.47, 48.89, 54.31, 59.73, 65.15, 70.57, 75.99, 81.41, 86.83, 92.25, 97.67, 103.09],
+                    "typeK": [50.50, 56.66, 62.82, 68.98, 75.14, 81.30, 87.46, 93.62, 99.78, 105.94, 112.10, 118.26],
+                    "typeT": [28.59, 36.68, 44.77, 52.86, 60.95, 69.04, 77.13, 85.22, 93.31, 101.40, 109.49, 117.58],
+                    "rtd2": [100.84, 108.93, 117.02, 125.11, 133.20, 141.29, 149.38, 157.47, 165.56, 173.65, 181.74, 189.83],
+                    "rtd3": [101.59, 110.96, 120.33, 129.70, 139.07, 148.44, 157.81, 167.18, 176.55, 185.92, 195.29, 204.66]
+                },
+                addlFt: { "typeJ": 5.42, "typeK": 6.16, "typeT": 8.09, "rtd2": 8.09, "rtd3": 9.37 }
+            },
+            "typeBPC_12": {
+                name: "Type BPC Bendable Probe TC (12\" long, 1/8\" NPT)",
+                matrix: {
+                    "typeJ": [46.47, 51.89, 57.31, 62.73, 68.15, 73.57, 78.99, 84.41, 89.83, 95.25, 100.67, 106.09],
+                    "typeK": [47.34, 53.50, 59.66, 65.82, 71.98, 78.14, 84.30, 90.46, 96.62, 102.78, 108.94, 115.10],
+                    "typeT": [57.38, 65.47, 73.56, 81.65, 89.74, 97.83, 105.92, 114.01, 122.10, 130.19, 138.28, 146.37],
+                    "rtd2": [99.97, 108.06, 116.15, 124.24, 132.33, 140.42, 148.51, 156.60, 164.69, 172.78, 180.87, 188.96],
+                    "rtd3": [101.11, 110.48, 119.85, 129.22, 138.59, 147.96, 157.33, 166.70, 176.07, 185.44, 194.81, 204.18]
+                },
+                addlFt: { "typeJ": 5.42, "typeK": 6.16, "typeT": 8.09, "rtd2": 8.09, "rtd3": 9.37 }
+            }
+        };
+
+        function calculatePrice() {
+            const catalogKey = document.getElementById('catalogStyle').value;
+            const tcType = document.getElementById('tcType').value;
+            const length = parseInt(document.getElementById('length').value) || 1;
+
+            const selectedCatalog = tcCatalogs[catalogKey];
+            let basePrice = 0;
+
+            if (selectedCatalog && selectedCatalog.matrix[tcType]) {
+                let matrixRow = selectedCatalog.matrix[tcType];
+                let addlRates = selectedCatalog.addlFt;
+
+                if (length <= 12) {
+                    basePrice = matrixRow[length - 1];
+                } else {
+                    let diff = length - 12;
+                    basePrice = matrixRow[11] + (diff * addlRates[tcType]);
+                }
+            }
+
+            let optionsCost = 0;
+            const extraLeadFt = parseInt(document.getElementById('extraLeadFt').value) || 0;
+
+            if (document.getElementById('optBayonet').checked) optionsCost += 13.79;
+            if (document.getElementById('optUngrounded').checked) optionsCost += 6.76;
+            if (document.getElementById('optDualElement').checked) optionsCost += 5.03;
+            if (document.getElementById('optBX').checked) optionsCost += 10.46;
+            
+            optionsCost += extraLeadFt * 0.93;
+
+            if (document.getElementById('optStdPlug').checked) optionsCost += 16.95;
+            if (document.getElementById('optStdJack').checked) optionsCost += 16.95;
+            if (document.getElementById('optMiniPlug').checked) optionsCost += 16.95;
+            if (document.getElementById('optMiniJack').checked) optionsCost += 16.95;
+
+            let baseUnitPrice = basePrice + optionsCost;
+
+            // Quantity tiers derived from thermocouple pricing image:
+            // 1-1: 1.0000 ($34.34)
+            // 2-4: 0.8125 ($27.90)
+            // 5-9: 0.6250 ($21.46)
+            // 10-24: 0.5000 ($17.17)
+            // 25-49: 0.3750 ($12.88)
+            // 50-99: 0.3500 ($12.02)
+            // 100+: 0.3375 ($11.59)
+            const tiers = [
+                { range: "1 - 1", mult: 1.0000 },
+                { range: "2 - 4", mult: 0.8125 },
+                { range: "5 - 9", mult: 0.6250 },
+                { range: "10 - 24", mult: 0.5000 },
+                { range: "25 - 49", mult: 0.3750 },
+                { range: "50 - 99", mult: 0.3500 },
+                { range: "100+", mult: 0.3375 }
+            ];
+
+            document.getElementById('totalPrice').innerText = '$' + baseUnitPrice.toFixed(2);
+
+            let tbody = document.getElementById('qtyTableBody');
+            tbody.innerHTML = '';
+            tiers.forEach(tier => {
+                let tierPrice = baseUnitPrice * tier.mult;
+                let tr = document.createElement('tr');
+                tr.innerHTML = `<td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${tier.range}</td>` +
+                               `<td style="padding: 8px; border-bottom: 1px solid #e2e8f0; text-align: right;">$${tierPrice.toFixed(2)}</td>`;
+                tbody.appendChild(tr);
+            });
+
+            let styleName = selectedCatalog ? selectedCatalog.name : "Adjustable TC";
+            let typeName = tcType === "typeJ" ? "Type J" : (tcType === "typeK" ? "Type K" : (tcType === "typeT" ? "Type T" : tcType));
+            let groundText = document.getElementById('optUngrounded').checked ? "Ungrounded Construction" : "Grounded Construction";
+            let descString = `${styleName}, ${typeName} with ${length} ft. long 24 ga Leads, ${groundText}, with Stripped Ends.`;
+            document.getElementById('descriptionBlurb').innerText = descString;
+        }
+
+        window.onload = function() {
+            calculatePrice();
+        }
+    </script>
+    <style>
+        :root {
+            --primary-color: #1a365d;
+            --secondary-color: #2b6cb0;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --text-color: #2d3748;
+            --border-color: #e2e8f0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.5;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 5px;
+            font-size: 24px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        select, input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+            background-color: #fff;
+            box-sizing: border-box;
+        }
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 3px rgba(43, 108, 176, 0.1);
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .checkbox-item input {
+            width: auto;
+        }
+        .checkbox-item label {
+            margin-bottom: 0;
+            font-weight: normal;
+            font-size: 13px;
+        }
+        .summary-card {
+            background-color: #ebf8ff;
+            border: 1px solid #bee3f8;
+            border-radius: 6px;
+            padding: 20px;
+            margin-top: 30px;
+            text-align: center;
+        }
+        .summary-card h2 {
+            margin: 0 0 10px 0;
+            color: var(--primary-color);
+            font-size: 18px;
+        }
+        .total-price {
+            font-size: 32px;
+            font-weight: bold;
+            color: #2b6cb0;
+        }
+        .desc-box {
+            background: #f7fafc;
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        .desc-box h3 {
+            margin: 0 0 5px 0;
+            color: var(--primary-color);
+            font-size: 15px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: #fff;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+        th {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 10px;
+            font-size: 14px;
+            text-align: left;
+        }
+        th:last-child {
+            text-align: right;
+        }
+    
+        .back-nav {
+            max-width: 900px;
+            margin: 0 auto 14px;
+        }
+        .back-nav a {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #2b6cb0;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .back-nav a:hover {
+            text-decoration: underline;
+        }
+</style>
+</head>
+<body>
+<div class="back-nav" data-back-nav="true"><a href="index.html">← Back to Other Heaters</a></div>
+
+
+<div class="container">
+    <h1>Thermocouples & RTD Pricing Calculator</h1>
+
+    <div class="form-group">
+        <label for="catalogStyle">Thermocouple Style / Table</label>
+        <select id="catalogStyle" onchange="calculatePrice()" oninput="calculatePrice()">
+            <option value="typeBS" selected>Type BS adjustable with SS braid</option>
+            <option value="typeAC">Type AC adjustable with SS armor</option>
+            <option value="typeBS12mm">Type BS 12mm adjustable with SS braid</option>
+            <option value="typeBS14mm">Type BS 14mm adjustable with SS braid</option>
+            <option value="typeTCarmor">Type TC adjustable with SS armor</option>
+            <option value="type45TC">Type 45TC Fixed TC with SS armor and 45 deg bend</option>
+            <option value="type90TC">Type 90TC Fixed TC with SS armor and 90 deg bend</option>
+            <option value="typeWQ_WN">Type WQ (3/16) and Type WN (5/16) washer style TC</option>
+            <option value="typeNB">Type NB Newbury Nozzle TC with SS braid</option>
+            <option value="typeSH">Type SH shim style with SS braid</option>
+            <option value="typeNZ">Type NZ shallow nozzle TC with SS braid</option>
+            <option value="typeNS">Type NS Nissei Nozzle TC with SS braid</option>
+            <option value="typeCT">Type CT Cartridge TC with SS braid</option>
+            <option value="typeMTC">Type MTC Hot Melt Nozzle TC with SS armor</option>
+            <option value="typeBPC_12">Type BPC Bendable Probe TC (12" long, 1/8" NPT)</option>
+        </select>
+    </div>
+
+    <div class="grid-2">
+        <div class="form-group">
+            <label for="tcType">Sensor Calibration / Type</label>
+            <select id="tcType" onchange="calculatePrice()" oninput="calculatePrice()">
+                <option value="typeJ" selected>Type J</option>
+                <option value="typeK">Type K</option>
+                <option value="typeT">Type T</option>
+                <option value="rtd2">2 wire RTD</option>
+                <option value="rtd3">3 wire RTD</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="length">Lead Length (Feet, 1 to 12+)</label>
+            <input type="number" id="length" min="1" max="50" value="4" oninput="calculatePrice()" onchange="calculatePrice()">
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <div class="form-group">
+            <label for="extraLeadFt">Extra 20 ga Lead Adder (Feet)</label>
+            <input type="number" id="extraLeadFt" min="0" max="50" value="0" oninput="calculatePrice()" onchange="calculatePrice()">
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>Thermocouple Options & Connectors</label>
+        <div class="checkbox-grid">
+            <div class="checkbox-item">
+                <input type="checkbox" id="optBayonet" onchange="calculatePrice()" oninput="calculatePrice()">
+                <label for="optBayonet">1/8" NPT bayonet fitting ($13.79)</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="optUngrounded" onchange="calculatePrice()" oninput="calculatePrice()">
+                <label for="optUngrounded">Ungrounded Construction ($6.76)</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="optDualElement" onchange="calculatePrice()" oninput="calculatePrice()">
+                <label for="optDualElement">Dual element construction ($5.03)</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="optBX" onchange="calculatePrice()" oninput="calculatePrice()">
+                <label for="optBX">BX Connector ($10.46)</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="optStdPlug" onchange="calculatePrice()" oninput="calculatePrice()">
+                <label for="optStdPlug">Standard Plug ($16.95)</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="optStdJack" onchange="calculatePrice()" oninput="calculatePrice()">
+                <label for="optStdJack">Standard Jack ($16.95)</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="optMiniPlug" onchange="calculatePrice()" oninput="calculatePrice()">
+                <label for="optMiniPlug">Mini Plug ($16.95)</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="optMiniJack" onchange="calculatePrice()" oninput="calculatePrice()">
+                <label for="optMiniJack">Mini Jack ($16.95)</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="summary-card">
+        <h2>List Price</h2>
+        <div class="total-price" id="totalPrice">$0.00</div>
+    </div>
+
+    <div style="margin-top: 25px;">
+      
+        <table>
+            <thead>
+                <tr>
+                    <th>Quantity</th>
+                    <th style="text-align: right;">Unit Price</th>
+                </tr>
+            </thead>
+            <tbody id="qtyTableBody">
+                <!-- Dynamically populated -->
+            </tbody>
+        </table>
+    </div>
+
+    <div class="desc-box">
+        <h3>Description</h3>
+        <p id="descriptionBlurb" style="margin: 0; color: #4a5568; font-family: monospace;"></p>
+    </div>
+</div>
+
+</body>
+</html>

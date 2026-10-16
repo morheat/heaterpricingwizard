@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backer Marathon - HotRod Cartridge Heater Pricing Calculator</title>
+    <script>
+        // Pricing extracted from Backer Marathon Spring 2024 Price Booklet
+        const basePricing = {
+            "1/8": {
+                "304SS": { base: 51.07, perInch: 6.75 }
+            },
+            "1/4": {
+                "304SS": { base: 26.80, perInch: 4.70 },
+                "316SS": { base: 26.95, perInch: 4.85 },
+                "Incoloy": { base: 27.02, perInch: 4.92 }
+            },
+            "6.5mm": {
+                "304SS": { base: 26.80, perInch: 4.70 },
+                "316SS": { base: 26.95, perInch: 4.85 },
+                "Incoloy": { base: 27.02, perInch: 4.92 }
+            },
+            "5/16": {
+                "304SS": { base: 27.58, perInch: 5.21 }
+            },
+            "8mm": {
+                "304SS": { base: 27.58, perInch: 5.21 }
+            },
+            "3/8": {
+                "304SS": { base: 26.88, perInch: 5.29 },
+                "316SS": { base: 27.07, perInch: 5.48 },
+                "Incoloy": { base: 27.28, perInch: 5.69 }
+            },
+            "10mm": {
+                "304SS": { base: 26.88, perInch: 5.29 },
+                "316SS": { base: 27.07, perInch: 5.48 },
+                "Incoloy": { base: 27.28, perInch: 5.69 }
+            },
+            "1/2": {
+                "304SS": { base: 29.53, perInch: 7.03 },
+                "316SS": { base: 29.89, perInch: 7.39 },
+                "Incoloy": { base: 31.16, perInch: 8.66 }
+            },
+            "17/32": {
+                "304SS": { base: 29.53, perInch: 7.03 },
+                "316SS": { base: 29.89, perInch: 7.39 },
+                "Incoloy": { base: 31.16, perInch: 8.66 }
+            },
+            "12mm": {
+                "304SS": { base: 29.53, perInch: 7.03 },
+                "316SS": { base: 29.89, perInch: 7.39 },
+                "Incoloy": { base: 31.16, perInch: 8.66 }
+            },
+            "12.5mm": {
+                "304SS": { base: 29.53, perInch: 7.03 },
+                "316SS": { base: 29.89, perInch: 7.39 },
+                "Incoloy": { base: 31.16, perInch: 8.66 }
+            },
+            "13mm": {
+                "304SS": { base: 29.53, perInch: 7.03 },
+                "316SS": { base: 29.89, perInch: 7.39 },
+                "Incoloy": { base: 31.16, perInch: 8.66 }
+            },
+            "5/8": {
+                "304SS": { base: 31.18, perInch: 7.74 },
+                "316SS": { base: 31.59, perInch: 8.15 },
+                "Incoloy": { base: 33.01, perInch: 9.57 }
+            },
+            "11/16": {
+                "304SS": { base: 31.18, perInch: 7.74 },
+                "316SS": { base: 31.59, perInch: 8.15 },
+                "Incoloy": { base: 33.01, perInch: 9.57 }
+            },
+            "16mm": {
+                "304SS": { base: 31.18, perInch: 7.74 },
+                "316SS": { base: 31.59, perInch: 8.15 },
+                "Incoloy": { base: 33.01, perInch: 9.57 }
+            },
+            "17mm": {
+                "304SS": { base: 31.18, perInch: 7.74 },
+                "316SS": { base: 31.59, perInch: 8.15 },
+                "Incoloy": { base: 33.01, perInch: 9.57 }
+            },
+            "3/4": {
+                "304SS": { base: 33.80, perInch: 9.78 },
+                "316SS": { base: 34.58, perInch: 10.56 },
+                "Incoloy": { base: 35.84, perInch: 11.82 }
+            },
+            "19mm": {
+                "304SS": { base: 33.80, perInch: 9.78 },
+                "316SS": { base: 34.58, perInch: 10.56 },
+                "Incoloy": { base: 35.84, perInch: 11.82 }
+            },
+            "20mm": {
+                "304SS": { base: 33.80, perInch: 9.78 },
+                "316SS": { base: 34.58, perInch: 10.56 },
+                "Incoloy": { base: 35.84, perInch: 11.82 }
+            },
+            "1": {
+                "304SS": { base: 41.44, perInch: 14.42 }
+            },
+            "25mm": {
+                "304SS": { base: 41.44, perInch: 14.42 }
+            }
+        };
+
+        const leadGaugeAdders = {
+            "24": 0.50,
+            "22": 0.54
+        };
+
+        const addOnPrices = {
+            endSeal: {
+                none: 0,
+                teflonSeal: 7.74,
+                lavaSeal: 23.08,
+                cement: 8.31,
+                rtv: 8.31,
+                epoxy: 11.60,
+                epoxylite: 20.39,
+                epoxyoverrtv: 18.29
+            },
+            leadProtection: {
+                none: 0,
+                straightswaggedin: 16.41,
+                coppercoupler: 22.70,
+                rightanglearmor: 28.13,
+                copperelbow: 21.56,
+                straightssbraid: 20.32,
+                rightanglessbraid: 28.70
+            },
+            fitting: {
+                none: 0,
+                npt18_brass: 14.71,
+                npt18_304ss: 35.88,
+                npt14_brass: 17.23,
+                npt14_304ss: 43.41,
+                flange_ss: 16.62
+            },
+            options: {
+                none: 0,
+                internalTC: 32.15,
+                distributedWattage: 17.80,
+                dualZone: 24.70,
+                passivation: 7.32
+            }
+        };
+
+        function updateMaterialsAndCalculate() {
+            const diameter = document.getElementById('diameter').value;
+            const materialSelect = document.getElementById('material');
+            const profile = basePricing[diameter] || { "304SS": { base: 17.10, perInch: 4.70 } };
+
+            materialSelect.innerHTML = '';
+            for (let mat in profile) {
+                let opt = document.createElement('option');
+                opt.value = mat;
+                opt.text = mat;
+                materialSelect.appendChild(opt);
+            }
+            calculatePrice();
+        }
+
+        function calculatePrice() {
+            const diameter = document.getElementById('diameter').value;
+            const material = document.getElementById('material').value;
+            const length = parseInt(document.getElementById('length').value) || 1;
+            const voltage = document.getElementById('voltage').value.trim();
+            const wattage = document.getElementById('wattage').value.trim();
+            const leadGauge = document.getElementById('leadGauge').value;
+            const leadLength = parseInt(document.getElementById('leadLength').value) || 10;
+            
+            const endSeal = document.getElementById('endSeal').value;
+            const leadProtection = document.getElementById('leadProtection').value;
+            const fitting = document.getElementById('fitting').value;
+            const option = document.getElementById('options').value;
+
+            let heaterProfile = basePricing[diameter]?.[material] || { base: 17.10, perInch: 4.70 };
+            
+            let minLengthOffset = 1;
+            let effectiveLength = Math.max(minLengthOffset, length);
+
+            let calculatedBasePrice = heaterProfile.base + (Math.max(0, effectiveLength - 1) * heaterProfile.perInch);
+
+            let leadAdder = 0;
+            if (leadLength > 10) {
+                let perInchRate = leadGaugeAdders[leadGauge] || 0.50;
+                leadAdder = (leadLength - 10) * perInchRate;
+            }
+
+            let sealCost = addOnPrices.endSeal[endSeal] || 0;
+            let protectionCost = addOnPrices.leadProtection[leadProtection] || 0;
+            let fittingCost = addOnPrices.fitting[fitting] || 0;
+            let optionCost = addOnPrices.options[option] || 0;
+
+            let baseUnitPrice = calculatedBasePrice + leadAdder + sealCost + protectionCost + fittingCost + optionCost;
+
+            const tiers = [
+                { range: "1 - 1", mult: 1.0000 },
+                { range: "2 - 4", mult: 0.8124 },
+                { range: "5 - 9", mult: 0.6250 },
+                { range: "10 - 24", mult: 0.5000 },
+                { range: "25 - 49", mult: 0.3750 },
+                { range: "50 - 99", mult: 0.3499 },
+                { range: "100+", mult: 0.3374 }
+            ];
+
+            document.getElementById('totalPrice').innerText = '$' + baseUnitPrice.toFixed(2);
+
+            let tbody = document.getElementById('qtyTableBody');
+            tbody.innerHTML = '';
+            tiers.forEach(tier => {
+                let tierPrice = baseUnitPrice * tier.mult;
+                let tr = document.createElement('tr');
+                tr.innerHTML = `<td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${tier.range}</td>` +
+                               `<td style="padding: 8px; border-bottom: 1px solid #e2e8f0; text-align: right;">$${tierPrice.toFixed(2)}</td>`;
+                tbody.appendChild(tr);
+            });
+
+            let sealText = endSeal !== 'none' ? endSeal.replace(/([A-Z])/g, ' $1').toLowerCase() + ' seal' : 'standard seal';
+            let protText = leadProtection !== 'none' ? leadProtection.replace(/([A-Z])/g, ' $1').toLowerCase() : 'standard leads';
+            let descString = `${diameter} in x ${length} in HotRod ${voltage} ${wattage} with ${leadLength} in ${leadGauge} ga leads, ${protText}, ${sealText}.`;
+            document.getElementById('descriptionBlurb').innerText = descString;
+        }
+
+        window.onload = function() {
+            updateMaterialsAndCalculate();
+        };
+    </script>
+    <style>
+        :root {
+            --primary-color: #1a365d;
+            --secondary-color: #2b6cb0;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --text-color: #2d3748;
+            --border-color: #e2e8f0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.5;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 5px;
+            font-size: 24px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        select, input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+            background-color: #fff;
+            box-sizing: border-box;
+        }
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 3px rgba(43, 108, 176, 0.1);
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .summary-card {
+            background-color: #ebf8ff;
+            border: 1px solid #bee3f8;
+            border-radius: 6px;
+            padding: 20px;
+            margin-top: 30px;
+            text-align: center;
+        }
+        .summary-card h2 {
+            margin: 0 0 10px 0;
+            color: var(--primary-color);
+            font-size: 18px;
+        }
+        .total-price {
+            font-size: 32px;
+            font-weight: bold;
+            color: #2b6cb0;
+        }
+        .desc-box {
+            background: #f7fafc;
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        .desc-box h3 {
+            margin: 0 0 5px 0;
+            color: var(--primary-color);
+            font-size: 15px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: #fff;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+        th {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 10px;
+            font-size: 14px;
+            text-align: left;
+        }
+        th:last-child {
+            text-align: right;
+        }
+    
+        .back-nav {
+            max-width: 800px;
+            margin: 0 auto 14px;
+        }
+        .back-nav a {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #2b6cb0;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .back-nav a:hover {
+            text-decoration: underline;
+        }
+</style>
+</head>
+<body>
+<div class="back-nav" data-back-nav="true"><a href="index.html">← Back to Other Heaters</a></div>
+
+
+<div class="container">
+    <h1>HotRod Cartridge Heater Pricing Calculator</h1>
+
+    <div class="grid-2">
+        <div class="form-group">
+            <label for="diameter">Diameter / Series</label>
+            <select id="diameter" onchange="updateMaterialsAndCalculate()">
+                <option value="1/8">1/8" Cartridge Heaters</option>
+                <option value="1/4" selected>1/4" Cartridge Heaters</option>
+                <option value="6.5mm">6.5mm Cartridge Heaters</option>
+                <option value="5/16">5/16" Cartridge Heaters</option>
+                <option value="8mm">8mm Cartridge Heaters</option>
+                <option value="3/8">3/8" Cartridge Heaters</option>
+                <option value="10mm">10mm Cartridge Heaters</option>
+                <option value="1/2">1/2" Cartridge Heaters</option>
+                <option value="17/32">17/32" Cartridge Heaters</option>
+                <option value="12mm">12mm Cartridge Heaters</option>
+                <option value="12.5mm">12.5mm Cartridge Heaters</option>
+                <option value="13mm">13mm Cartridge Heaters</option>
+                <option value="5/8">5/8" Cartridge Heaters</option>
+                <option value="11/16">11/16" Cartridge Heaters</option>
+                <option value="16mm">16mm Cartridge Heaters</option>
+                <option value="17mm">17mm Cartridge Heaters</option>
+                <option value="3/4">3/4" Cartridge Heaters</option>
+                <option value="19mm">19mm Cartridge Heaters</option>
+                <option value="20mm">20mm Cartridge Heaters</option>
+                <option value="1">1" Cartridge Heaters</option>
+                <option value="25mm">25mm Cartridge Heaters</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="material">Sheath Material</label>
+            <select id="material" onchange="calculatePrice()">
+                <!-- Populated dynamically -->
+            </select>
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <div class="form-group">
+            <label for="length">Heated Length (Inches)</label>
+            <input type="number" id="length" min="1" max="36" value="5" oninput="calculatePrice()" onchange="calculatePrice()">
+        </div>
+
+        <div class="form-group">
+            <label for="voltage">Voltage</label>
+            <input type="text" id="voltage" value="230V" oninput="calculatePrice()" onchange="calculatePrice()">
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <div class="form-group">
+            <label for="wattage">Wattage</label>
+            <input type="text" id="wattage" value="100W" oninput="calculatePrice()" onchange="calculatePrice()">
+        </div>
+
+        <div class="form-group">
+            <label for="leadGauge">Lead Wire Gauge</label>
+            <select id="leadGauge" onchange="calculatePrice()">
+                <option value="24" selected>24 ga. (Standard)</option>
+                <option value="22">22 ga.</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <div class="form-group">
+            <label for="leadLength">Total Lead Length (Inches)</label>
+            <input type="number" id="leadLength" min="10" value="24" oninput="calculatePrice()" onchange="calculatePrice()">
+        </div>
+
+        <div class="form-group">
+            <label for="leadProtection">Lead Protection / Armor</label>
+            <select id="leadProtection" onchange="calculatePrice()">
+                <option value="none">None (Standard Leads)</option>
+                <option value="straightswaggedin">Straight, Swagged in</option>
+                <option value="coppercoupler">Copper Coupler</option>
+                <option value="rightanglearmor">Right angle armor</option>
+                <option value="copperelbow">Copper Elbow</option>
+                <option value="straightssbraid">Straight SS Braid</option>
+                <option value="rightanglessbraid">Right Angle SS Braid</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <div class="form-group">
+            <label for="endSeal">End Seal / Potting</label>
+            <select id="endSeal" onchange="calculatePrice()">
+                <option value="none">None (Standard)</option>
+                <option value="teflonSeal">Teflon Seal</option>
+                <option value="lavaSeal">Lava Seal</option>
+                <option value="cement">Cement Potting</option>
+                <option value="rtv">RTV Potting</option>
+                <option value="epoxy">Epoxy Potting</option>
+                <option value="epoxylite">Epoxylite Potting</option>
+                <option value="epoxyoverrtv">Epoxy over RTV Potting</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="fitting">Threaded Fitting / Flange</label>
+            <select id="fitting" onchange="calculatePrice()">
+                <option value="none">None</option>
+                <option value="npt18_brass">1/8" NPT Brass Fitting</option>
+                <option value="npt18_304ss">1/8" NPT 304SS Fitting</option>
+                <option value="npt14_brass">1/4" NPT Brass Fitting</option>
+                <option value="npt14_304ss">1/4" NPT 304SS Fitting</option>
+                <option value="flange_ss">1" or 1-1/2" Diameter 304SS Flange</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="options">Special Options</label>
+        <select id="options" onchange="calculatePrice()">
+            <option value="none">None</option>
+            <option value="internalTC">Internal Thermocouple</option>
+            <option value="distributedWattage">Distributed Wattage</option>
+            <option value="dualZone">Dual Zone Heater</option>
+            <option value="passivation">Passivation (0-12")</option>
+        </select>
+    </div>
+
+    <div class="summary-card">
+        <h2>List Price</h2>
+        <div class="total-price" id="totalPrice">$0.00</div>
+    </div>
+
+    <div style="margin-top: 25px;">
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Quantity</th>
+                    <th style="text-align: right;">Unit Price</th>
+                </tr>
+            </thead>
+            <tbody id="qtyTableBody">
+                <!-- Dynamically populated -->
+            </tbody>
+        </table>
+    </div>
+
+    <div class="desc-box">
+        <h3>Description</h3>
+        <p id="descriptionBlurb" style="margin: 0; color: #4a5568; font-family: monospace;"></p>
+    </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Viper Coil Heaters Pricing Calculator</title>
+    <script>
+        // Viper Coil Heaters Matrix Data (Straight Length -> [Wattages Available, W/O TC Price, W/TC Price])
+        const viperMatrix = {
+            "14": { watts: "200 (n/a)", wotc: 270.38, wtc: 373.44 },
+            "16": { watts: "250 (175)", wotc: 274.78, wtc: 373.44 },
+            "18": { watts: "300 (225)", wotc: 285.15, wtc: 388.08 },
+            "20": { watts: "350 (250)", wotc: 299.91, wtc: 402.61 },
+            "24": { watts: "400 (300)", wotc: 316.21, wtc: 417.41 },
+            "28": { watts: "450 (350)", wotc: 328.45, wtc: 435.58 },
+            "32": { watts: "500 (400)", wotc: 343.90, wtc: 451.87 },
+            "36": { watts: "600 (450)", wotc: 362.94, wtc: 466.65 },
+            "40": { watts: "700 (500)", wotc: 378.45, wtc: 485.62 },
+            "48": { watts: "800 (550)", wotc: 415.66, wtc: 520.26 },
+            "52": { watts: "900 (650)", wotc: 434.78, wtc: 535.73 },
+            "56": { watts: "1000 (n/a)", wotc: 452.89, wtc: 570.29 },
+            "64": { watts: "1100 (n/a)", wotc: 489.04, wtc: 613.53 },
+            "72": { watts: "1250 (n/a)", wotc: 526.42, wtc: 667.13 },
+            "80": { watts: "1400 (n/a)", wotc: 563.55, wtc: 734.48 }
+        };
+
+        function calculatePrice() {
+            const length = document.getElementById('length').value;
+            const hasTC = document.getElementById('hasTC').value;
+
+            let basePrice = 0;
+            if (viperMatrix[length]) {
+                basePrice = (hasTC === "yes") ? viperMatrix[length].wtc : viperMatrix[length].wotc;
+            }
+
+            let baseUnitPrice = basePrice;
+
+            // Quantity tiers derived from coil heater pricing image:
+            // 1+: 1.0000 ($122.44 base scale or direct multiplier)
+            const tiers = [
+                { range: "1+", mult: 1.0000 }
+            ];
+
+            document.getElementById('totalPrice').innerText = '$' + baseUnitPrice.toFixed(2);
+
+            let tbody = document.getElementById('qtyTableBody');
+            tbody.innerHTML = '';
+            tiers.forEach(tier => {
+                let tierPrice = baseUnitPrice * tier.mult;
+                let tr = document.createElement('tr');
+                tr.innerHTML = `<td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${tier.range}</td>` +
+                               `<td style="padding: 8px; border-bottom: 1px solid #e2e8f0; text-align: right;">$${tierPrice.toFixed(2)}</td>`;
+                tbody.appendChild(tr);
+            });
+
+            let tcText = hasTC === "yes" ? "with Thermocouple" : "no TC";
+            let descString = `0.500 in. Dia. x 6.00 in. Coil Length 240 V 175 W with a .130 square Cross Section, 36 in. long Leads, 34 in. SS Braid, Ground Wire, ${tcText}, and type CL1 lead orientation.`;
+            document.getElementById('descriptionBlurb').innerText = descString;
+        }
+
+        window.onload = function() {
+            calculatePrice();
+        }
+    </script>
+    <style>
+        :root {
+            --primary-color: #1a365d;
+            --secondary-color: #2b6cb0;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --text-color: #2d3748;
+            --border-color: #e2e8f0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.5;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 5px;
+            font-size: 24px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #718096;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        select, input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+            background-color: #fff;
+            box-sizing: border-box;
+        }
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 3px rgba(43, 108, 176, 0.1);
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .summary-card {
+            background-color: #ebf8ff;
+            border: 1px solid #bee3f8;
+            border-radius: 6px;
+            padding: 20px;
+            margin-top: 30px;
+            text-align: center;
+        }
+        .summary-card h2 {
+            margin: 0 0 10px 0;
+            color: var(--primary-color);
+            font-size: 18px;
+        }
+        .total-price {
+            font-size: 32px;
+            font-weight: bold;
+            color: #2b6cb0;
+        }
+        .desc-box {
+            background: #f7fafc;
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        .desc-box h3 {
+            margin: 0 0 5px 0;
+            color: var(--primary-color);
+            font-size: 15px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: #fff;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+        th {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 10px;
+            font-size: 14px;
+            text-align: left;
+        }
+        th:last-child {
+            text-align: right;
+        }
+        .note {
+            font-size: 12px;
+            color: #718096;
+            margin-top: 5px;
+        }
+    
+        .back-nav {
+            max-width: 900px;
+            margin: 0 auto 14px;
+        }
+        .back-nav a {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #2b6cb0;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .back-nav a:hover {
+            text-decoration: underline;
+        }
+</style>
+</head>
+<body>
+<div class="back-nav" data-back-nav="true"><a href="index.html">← Back to Other Heaters</a></div>
+
+
+<div class="container">
+    <h1>Viper Coil Heaters Pricing Calculator</h1>
+  
+    <div class="grid-2">
+        <div class="form-group">
+            <label for="length">Straight Length (Inches)</label>
+            <select id="length" onchange="calculatePrice()" oninput="calculatePrice()">
+                <option value="14">14"</option>
+                <option value="16">16"</option>
+                <option value="18">18"</option>
+                <option value="20">20"</option>
+                <option value="24" selected>24"</option>
+                <option value="28">28"</option>
+                <option value="32">32"</option>
+                <option value="36">36"</option>
+                <option value="40">40"</option>
+                <option value="48">48"</option>
+                <option value="52">52"</option>
+                <option value="56">56"</option>
+                <option value="64">64"</option>
+                <option value="72">72"</option>
+                <option value="80">80"</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="hasTC">Thermocouple Option</label>
+            <select id="hasTC" onchange="calculatePrice()" oninput="calculatePrice()">
+                <option value="no" selected>W/O TC (Without Thermocouple)</option>
+                <option value="yes">W/TC (With Thermocouple)</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="summary-card">
+        <h2>List Price</h2>
+        <div class="total-price" id="totalPrice">$0.00</div>
+    </div>
+
+    <div style="margin-top: 25px;">
+     
+        <table>
+            <thead>
+                <tr>
+                    <th>Quantity</th>
+                    <th style="text-align: right;">Unit Price</th>
+                </tr>
+            </thead>
+            <tbody id="qtyTableBody">
+                <!-- Dynamically populated -->
+            </tbody>
+        </table>
+    </div>
+
+    <div class="desc-box">
+        <h3>Description</h3>
+        <p id="descriptionBlurb" style="margin: 0; color: #4a5568; font-family: monospace;"></p>
+    </div>
+</div>
+
+</body>
+</html>
