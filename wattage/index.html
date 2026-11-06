@@ -36,13 +36,35 @@ input[type=radio],input[type=checkbox]{width:22px;height:22px;vertical-align:mid
 .converter-row label{display:flex;align-items:center;gap:4px;flex:1;min-width:0;white-space:nowrap}
 .converter-row input[type=text]{width:100%;min-width:0}
 .converter-eq{color:#596575}
+.tank-volume{margin-top:12px}
+.tv-options{display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px;margin-bottom:10px}
+.tv-options label{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.tv-options select{padding:6px 8px;width:auto;min-height:0;margin:0}
+.tv-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.tv-field{display:flex;flex-direction:column;gap:3px;font-size:14px;color:#34485e}
+.tv-field[hidden]{display:none}
+.tv-field input[type=text]{width:100%}
+.tv-result{margin-top:12px;font-size:20px;font-weight:650;color:#215d96}
 </style></head><body><div class="site-back"><a href="../index.html">← Back to Heater Pricing Wizard</a></div><main><h1>Immersion Heater Wattage Calculator</h1><p class="intro"> </p><section class="unit-converters" aria-label="Unit converters">
 <h2>Unit Converters</h2>
 <div class="converter-grid">
 <div class="converter"><span class="converter-title">Celsius ↔ Fahrenheit</span><div class="converter-row"><label><input id="conv-c" type="text" inputmode="decimal" autocomplete="off" aria-label="Degrees Celsius" /> °C</label><span class="converter-eq">=</span><label><input id="conv-f" type="text" inputmode="decimal" autocomplete="off" aria-label="Degrees Fahrenheit" /> °F</label></div></div>
 <div class="converter"><span class="converter-title">Millimetres ↔ Feet</span><div class="converter-row"><label><input id="conv-mm" type="text" inputmode="decimal" autocomplete="off" aria-label="Millimetres" /> mm</label><span class="converter-eq">=</span><label><input id="conv-mm-ft" type="text" inputmode="decimal" autocomplete="off" aria-label="Feet" /> ft</label></div></div>
 <div class="converter"><span class="converter-title">Inches ↔ Feet</span><div class="converter-row"><label><input id="conv-in" type="text" inputmode="decimal" autocomplete="off" aria-label="Inches" /> in.</label><span class="converter-eq">=</span><label><input id="conv-in-ft" type="text" inputmode="decimal" autocomplete="off" aria-label="Feet" /> ft</label></div></div>
-<div class="converter"><span class="converter-title">Litres ↔ Gallons</span><div class="converter-row"><label><input id="conv-l" type="text" inputmode="decimal" autocomplete="off" aria-label="Litres" /> L</label><span class="converter-eq">=</span><label><input id="conv-gal" type="text" inputmode="decimal" autocomplete="off" aria-label="US gallons" /> gal.</label></div></div>
+<div class="converter"><span class="converter-title">Litres ↔ US Gallons</span><div class="converter-row"><label><input id="conv-l" type="text" inputmode="decimal" autocomplete="off" aria-label="Litres" /> L</label><span class="converter-eq">=</span><label><input id="conv-gal" type="text" inputmode="decimal" autocomplete="off" aria-label="US gallons" /> gal.</label></div></div>
+</div>
+<div class="converter tank-volume"><span class="converter-title">Tank Volume Calculator</span>
+<div class="tv-options">
+<span role="radiogroup" aria-label="Tank shape" class="tv-options"><label><input type="radio" name="tv-shape" value="rect" checked="checked" /> Rectangular</label><label><input type="radio" name="tv-shape" value="cyl" /> Cylindrical</label></span>
+<label>Units: <select id="tv-unit" aria-label="Dimension units"><option value="25.4">mm</option><option value="1" selected="selected">inches</option><option value="0.0833333333333333">feet</option></select></label>
+</div>
+<div class="tv-fields">
+<label class="tv-field tv-rect">Length <input id="tv-length" type="text" inputmode="decimal" autocomplete="off" /></label>
+<label class="tv-field tv-rect">Width <input id="tv-width" type="text" inputmode="decimal" autocomplete="off" /></label>
+<label class="tv-field tv-cyl" hidden>Diameter <input id="tv-diam" type="text" inputmode="decimal" autocomplete="off" /></label>
+<label class="tv-field">Height <input id="tv-height" type="text" inputmode="decimal" autocomplete="off" /></label>
+</div>
+<div class="tv-result" aria-live="polite">Volume: <span id="tv-result">—</span> US gal.</div>
 </div>
 </section><script>
 (function(){
@@ -65,6 +87,29 @@ input[type=radio],input[type=checkbox]{width:22px;height:22px;vertical-align:mid
   var a=document.getElementById(p[0]),b=document.getElementById(p[1]);
   link(a,b,p[2]);link(b,a,p[3]);
  });
+ // Tank volume: dimensions are converted to inches, then 231 in³ = 1 US gallon
+ var IN3_PER_GAL=231;
+ var unit=document.getElementById('tv-unit');
+ var out=document.getElementById('tv-result');
+ function shape(){return document.querySelector('input[name=tv-shape]:checked').value;}
+ function inches(id){
+  var raw=document.getElementById(id).value.trim().replace(',','.');
+  if(raw==='')return NaN;
+  var n=Number(raw);
+  return n>=0?n/Number(unit.value):NaN;
+ }
+ function update(){
+  var cyl=shape()==='cyl';
+  document.querySelectorAll('.tv-rect').forEach(function(el){el.hidden=cyl;});
+  document.querySelectorAll('.tv-cyl').forEach(function(el){el.hidden=!cyl;});
+  var h=inches('tv-height'),vol;
+  if(cyl){var d=inches('tv-diam');vol=Math.PI*d*d/4*h;}
+  else{vol=inches('tv-length')*inches('tv-width')*h;}
+  out.textContent=isNaN(vol)?'—':Number(fmt(vol/IN3_PER_GAL)).toLocaleString('en-US',{maximumFractionDigits:6});
+ }
+ ['tv-length','tv-width','tv-diam','tv-height'].forEach(function(id){document.getElementById(id).addEventListener('input',update);});
+ unit.addEventListener('change',update);
+ document.querySelectorAll('input[name=tv-shape]').forEach(function(r){r.addEventListener('change',update);});
 })();
 </script><div class="calc-container">
 <div class="calc-header"><b>Units: <label class="unit-choice"><input id="imperial" checked="checked" name="units-master" type="radio" /> Imperial</label> <label class="unit-choice"><input id="metric" name="units-master" type="radio" /> Metric</label></b></div>
